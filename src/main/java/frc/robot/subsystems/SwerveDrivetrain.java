@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -40,7 +42,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 import frc.robot.SwerveModule;
+import frc.robot.LimelightHelpers.LimelightResults;
+import frc.robot.LimelightHelpers.LimelightTarget_Fiducial;
 
 public class SwerveDrivetrain extends SubsystemBase {
     // Odometry positions
@@ -49,10 +54,10 @@ public class SwerveDrivetrain extends SubsystemBase {
     // x = forward, y = strafe
     // All setup
     private final SwerveModule[] m_modules = new SwerveModule[]{
-        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 1), // top right
-        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 3), // top left
-        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 2), // bottom right
-        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 4) // bottom left
+        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 4), // top right
+        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 2), // top left
+        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 3), // bottom right
+        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 1) // bottom left
     };
     private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(new Translation2d[]{
         new Translation2d(Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // top right
@@ -69,7 +74,7 @@ public class SwerveDrivetrain extends SubsystemBase {
         });
     private final Field2d m_field = new Field2d();
     // Vision correction
-    private final Vision m_vision = new Vision();
+
     private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
         m_modules[0].getPosition(),
         m_modules[1].getPosition(),
@@ -138,7 +143,7 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
         } else
             m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
-
+        m_gyroPID.enableContinuousInput(0.0, 2*Math.PI);
         this.setDefaultCommand(this.run(
             () -> {
                 for (final SwerveModule module : m_modules) module.goToState(MetersPerSecond.zero(), Rotation2d.kZero);
@@ -179,6 +184,14 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
+        LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+        if (limelightMeasurement.tagCount >= 2) {
+            m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
+            m_poseEstimator.addVisionMeasurement(
+                limelightMeasurement.pose,
+                limelightMeasurement.timestampSeconds
+            );
+        }
         if (m_chooser.getSelected() != m_lastChoice) {
             m_odometry.resetPose(m_chooser.getSelected());
             m_lastChoice = m_chooser.getSelected();
@@ -264,16 +277,19 @@ public class SwerveDrivetrain extends SubsystemBase {
     public Command driveCommand(DoubleSupplier fwd, DoubleSupplier strafe, Supplier<AngularVelocity> turn) {
         return this.run(
             () -> {
-                double fwdVelocity = fwd.getAsDouble();
-                double strafeVelocity = strafe.getAsDouble();
+                double fwdVelocity = -fwd.getAsDouble(); // NOTE THE NEGATIVE SIGN!!
+                double strafeVelocity = -strafe.getAsDouble();
                 double magnitude = Math.hypot(fwdVelocity, strafeVelocity);
                 if (Math.hypot(fwdVelocity, strafeVelocity) > Constants.kMaxVelocity) {
                     fwdVelocity *= Constants.kMaxVelocity / magnitude;
                     strafeVelocity *= Constants.kMaxVelocity / magnitude;
                 }
                 // note: the times(5) is simply just a temporary fix
-                final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(
-                    new ChassisSpeeds(fwdVelocity, strafeVelocity, turn.get().times(8).in(RadiansPerSecond)));
+                final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(// NOTE THE NEGATIVE SIGN!!
+                    new ChassisSpeeds(fwdVelocity, strafeVelocity, -turn.get()
+                    .times(8)
+                    .in(RadiansPerSecond))
+                    );
                 for (int i = 0; i < states.length; ++i) {
                     if (Constants.kCosineScale) {
                         states[i].cosineScale(m_modules[i].getPosition().angle);
@@ -285,12 +301,40 @@ public class SwerveDrivetrain extends SubsystemBase {
         );
     }
 
-    public Command driveHeadingCommand(DoubleSupplier fwd, DoubleSupplier strafe, Supplier<Rotation2d> heading) {
-        return this.driveCommand(fwd, strafe, () -> {           
-            double turnRate = m_gyroPID.calculate(getGyroscope().getRadians(), SwerveModule.getClosestRotation(getGyroscope(), heading.get()).getRadians());
-            turnRate = Math.abs(getGyroscope().getDegrees() - SwerveModule.getClosestRotation(getGyroscope(), heading.get()).getDegrees()) < 5 ? 0 : turnRate;
-            return RadiansPerSecond.of(turnRate);
-        });
+    public Command driveHeadingCommand(DoubleSupplier fwd, DoubleSupplier strafe, Supplier<AngularVelocity> turn) {
+        // return this.driveCommand(fwd, strafe, () -> {           
+        //     double turnRate = m_gyroPID.calculate(getGyroscope().getRadians(), SwerveModule.getClosestRotation(getGyroscope(), heading.get()).getRadians());
+        //     turnRate = Math.abs(getGyroscope().getDegrees() - SwerveModule.getClosestRotation(getGyroscope(), heading.get()).getDegrees()) < 5 ? 0 : turnRate;
+        //     return RadiansPerSecond.of(turnRate);
+        // });
+        return this.run(
+            () -> {
+                double fwdVelocity = -fwd.getAsDouble(); // NOTE THE NEGATIVE SIGN!!
+                double strafeVelocity = -strafe.getAsDouble();
+                double magnitude = Math.hypot(fwdVelocity, strafeVelocity);
+                if (Math.hypot(fwdVelocity, strafeVelocity) > Constants.kMaxVelocity) {
+                    fwdVelocity *= Constants.kMaxVelocity / magnitude;
+                    strafeVelocity *= Constants.kMaxVelocity / magnitude;
+                }
+                // note: the times(8) is simply just a temporary fix
+                // double turnSpeed = -m_gyroPID.calculate(getGyroscope().getRadians(), heading.get().getRadians()) * 8;
+                // System.out.println(turnSpeed);
+                // System.out.println(Math.abs(heading.get().getDegrees() - getGyroscope().getDegrees()));
+                // if (Math.abs(turnSpeed) > Constants.kMaxAngularVelocity) turnSpeed = Constants.kMaxAngularVelocity * Math.signum(turnSpeed);
+                // if (Math.abs(heading.get().getDegrees() - getGyroscope().getDegrees()) < Constants.kHeadingTolerance) turnSpeed = 0;
+                final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(// NOTE THE NEGATIVE SIGN!!
+
+                    ChassisSpeeds.fromRobotRelativeSpeeds(fwdVelocity, strafeVelocity, -turn.get().in(RadiansPerSecond)*8, getGyroscope())
+                    );
+                for (int i = 0; i < states.length; ++i) {
+                    if (Constants.kCosineScale) {
+                        states[i].cosineScale(m_modules[i].getPosition().angle);
+                    }
+                    //SmartDashboard.putNumber("")
+                    m_modules[i].goToState(MetersPerSecond.of(states[i].speedMetersPerSecond), states[i].angle);
+                }
+            }
+        );
     }
 
     public Command followTrajectoryCommand(Supplier<Trajectory> trajectory) {
@@ -369,5 +413,22 @@ public class SwerveDrivetrain extends SubsystemBase {
      */
     public Voltage getCurrentDraw() {
         return m_modules[0].getCurrentDraw().plus(m_modules[1].getCurrentDraw()).plus(m_modules[2].getCurrentDraw()).plus(m_modules[3].getCurrentDraw());
+    }
+
+    public double getRumble() {
+        // test code
+        // Get the current Limelight data
+        LimelightResults results = LimelightHelpers.getLatestResults("limelight");
+        double rumble = 0.0;
+        for (int i = 0; i < results.targets_Fiducials.length; i++) {
+            LimelightTarget_Fiducial tag = results.targets_Fiducials[i];
+            //if (tag.fiducialID)
+            Pose3d pose = tag.getTargetPose_RobotSpace();
+            double yaw = pose.getRotation().getZ();
+            System.out.println(yaw);
+            System.out.println(tag.fiducialID);
+            if (tag.fiducialID == 1) rumble = Math.max(rumble, 2*Math.exp(-Math.abs(yaw))/(1+Math.exp(-Math.abs(yaw))));
+        }
+        return rumble;//1.0;
     }
 }

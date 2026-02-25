@@ -17,6 +17,7 @@ public final class Constants {
     public static final int kAxisY = 1;
     public static final int kAxisZ = 4;
     public static final int kAxisA = 5; // for use with gyro
+    public static final double kDeadzone = 0.05;
     // TODO: double check values
     public static final double kRobotTrackWidth = Units.inchesToMeters(27.5);
     public static final double kRobotTrackDepth = Units.inchesToMeters(27.5);
@@ -30,7 +31,7 @@ public final class Constants {
     public static final double kADrive = 0.1;
 
     // note: this doesn't mean anything right now except for joystick inputs
-    public static final double kMaxVelocity = 4.0;
+    public static final double kMaxVelocity = 6.0;//4.0;
     public static final double kMaxAcceleration = 2.5;
     public static final double kMaxAngularVelocity = Units.degreesToRadians(180)/5;
     public static final double kMaxAngularAcceleration = Units.degreesToRadians(120)/5;
@@ -44,22 +45,24 @@ public final class Constants {
     public static final Distance kWheelCircum = kWheelRadius.times(2*Math.PI);
 
     // CAN IDs
-    public static final int kFRDriveId = 2;
-    public static final int kFLDriveId = 5;
-    public static final int kBRDriveId = 4;
-    public static final int kBLDriveId = 7;
+    public static final int kFRDriveId = 7;//2;
+    public static final int kFLDriveId = 4;//5;
+    public static final int kBRDriveId = 5;//4;
+    public static final int kBLDriveId = 2;//7;
 
-    public static final int kFRSteerId = 1;
-    public static final int kFLSteerId = 6;
-    public static final int kBRSteerId = 3;
-    public static final int kBLSteerId = 8;
+    public static final int kFRSteerId = 8;//1;
+    public static final int kFLSteerId = 3;//6;
+    public static final int kBRSteerId = 6;//3;
+    public static final int kBLSteerId = 1;//8;
 
     public static final int kFeederId = 9;
     public static final int kLauncherId = 10;
+    public static final int kSecondIntakeId = 11;
+    public static final int kClimberId = 12;
 
     public static final double kBitMoreThanHalf = 0.55;
 
-    public static final int[] kEncoders = { 3, 2, 4, 1 };
+    public static final int[] kEncoders = { 1, 2, 3, 4 };
     public static final double[] kEncoderZeros = {
         0.396,
         0.543,
@@ -70,7 +73,11 @@ public final class Constants {
     public static final boolean kCosineScale = true;
 
     // Absolute heading mode for joystick control
-    public static final boolean kUseHeading = false;
+    public static final boolean kUseHeading = true;
+    public static final double kHeadingTolerance = 3;
+    // IN THE WORKS!!
+
+
     public static final Rotation2d kBlueOffset = Rotation2d.kZero;
     public static final Rotation2d kRedOffset = Rotation2d.k180deg;
     public static final Rotation2d kElasticOffset = Rotation2d.kCCW_Pi_2;
@@ -88,7 +95,7 @@ public final class Constants {
     public static final Pose2d kBlueStart = new Pose2d(
         Units.inchesToMeters(297.5), Units.inchesToMeters(158.5+146.5/2), Rotation2d.kZero);
     // April tag business
-    public static final AprilTagFieldLayout kAprilTags = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+    public static final AprilTagFieldLayout kAprilTags = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
     public static final int kNumTags = kAprilTags.getTags().size();
 
     // PID constants
@@ -107,9 +114,9 @@ public final class Constants {
     //public static final double kFFDrive = 2.0;
     //public static final double kFFDrive = 0.0;
 
-    public static final double kPGyro = 0.1;
+    public static final double kPGyro = 1.0;
     public static final double kIGyro = 0.0;
-    public static final double kDGyro = 0.0;
+    public static final double kDGyro = 0.001;
 
     // The one solo simulation variable for now
     public static final double kSimNoise = 1.1e-5;

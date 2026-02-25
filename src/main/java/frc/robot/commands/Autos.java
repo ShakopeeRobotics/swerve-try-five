@@ -17,8 +17,18 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 public final class Autos {
+  public static Command doNothing(SwerveDrivetrain drivetrain) {
+    return drivetrain.runOnce(() -> {});
+  }
+  
   public static Command driveForward(SwerveDrivetrain drivetrain, double timeout) {
-    return drivetrain.driveCommand(()->1.0, ()->0.0, ()->DegreesPerSecond.of(90))
+    return drivetrain.driveCommand(()->1.0, ()->0.0, ()->DegreesPerSecond.zero())
+      .withTimeout(Seconds.of(timeout))
+      .withName(String.format("Go Forward (%.1fs)", timeout));
+  }
+
+  public static Command driveMagnitude(SwerveDrivetrain drivetrain, double speed, double timeout) {
+    return drivetrain.driveCommand(()->speed, ()->0.0, ()->DegreesPerSecond.zero())
       .withTimeout(Seconds.of(timeout))
       .withName(String.format("Go Forward (%.1fs)", timeout));
   }
@@ -38,14 +48,14 @@ public final class Autos {
       .withName("Drive Then Spin");
   }
 
-  public static Command driveThenRight(SwerveDrivetrain drivetrain) {
-    return drivetrain.driveCommand(() -> 1.0, () -> 0.0, () -> RPM.zero())
-      .withTimeout(Seconds.of(5.0))
-      .andThen(
-        drivetrain.driveHeadingCommand(() -> 0.0, () -> 0.0, () -> Rotation2d.fromDegrees(-90))
-          .withTimeout(Seconds.of(10.0)))
-      .withName("Drive Then Right");
-  }
+  // public static Command driveThenRight(SwerveDrivetrain drivetrain) {
+  //   return drivetrain.driveCommand(() -> 1.0, () -> 0.0, () -> RPM.zero())
+  //     .withTimeout(Seconds.of(5.0))
+  //     .andThen(
+  //       drivetrain.driveHeadingCommand(() -> 0.0, () -> 0.0, () -> Rotation2d.fromDegrees(-90))
+  //         .withTimeout(Seconds.of(10.0)))
+  //     .withName("Drive Then Right");
+  // }
 
   public static Command goToBlueStart(SwerveDrivetrain drivetrain) {
     return drivetrain.goToPosCommand(Constants.kBlueStart)

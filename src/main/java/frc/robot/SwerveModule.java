@@ -96,6 +96,7 @@ public class SwerveModule implements Sendable {
      */
     private void configureMotor(SparkMax motor, double p, double i, double d, double ff, double posFactor, double velFactor, double outputRange) {
         SparkMaxConfig config = new SparkMaxConfig();
+        config.smartCurrentLimit(130);
         config.closedLoop
             .pid(p, i, d)
             .positionWrappingEnabled(true)
@@ -209,6 +210,7 @@ public class SwerveModule implements Sendable {
         return Rotation2d.fromDegrees(Rotation2d.fromDegrees(360).times(
             Math.round(current.getRotations() - setpoint.getRotations())
         ).getDegrees() + setpoint.getDegrees());
+        //return setpoint.minus(current).plus
     }
 
     /**
