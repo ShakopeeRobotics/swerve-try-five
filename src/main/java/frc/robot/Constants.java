@@ -64,10 +64,10 @@ public final class Constants {
 
     public static final int[] kEncoders = { 1, 2, 3, 4 };
     public static final double[] kEncoderZeros = {
-        0.396,
-        0.543,
-        0.828,
-        0.9
+        0.5749422893735572,//0.396,
+        0.5389098134727454,//0.543,
+        0.825467320636683,//0.828,
+        0.8962789724069743,//0.9
     };
 
     public static final boolean kCosineScale = true;

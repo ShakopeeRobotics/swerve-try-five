@@ -103,6 +103,7 @@ public class RobotContainer {
     5
     6
     */
+    m_joystick.button(8).toggleOnTrue(m_drivetrain.resetGyroscope());
     m_joystick.button(5).toggleOnTrue(m_intake.intakeCommand());
     m_joystick.button(6).toggleOnTrue(m_fuel.launchCommand());
      m_joystick.button(3).toggleOnTrue(m_fuel.shortLaunchCommand());

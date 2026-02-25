@@ -268,6 +268,10 @@ public class SwerveDrivetrain extends SubsystemBase {
         return m_steerSysIdRoutine.dynamic(direction);
     }
 
+    public Command resetGyroscope() {
+        return this.runOnce(() -> {m_gyroscope.reset();});
+    }
+
     /**
      * @param fwd Forward rate in m/s.
      * @param strafe Strafing rate in m/s.
@@ -317,13 +321,7 @@ public class SwerveDrivetrain extends SubsystemBase {
                     strafeVelocity *= Constants.kMaxVelocity / magnitude;
                 }
                 // note: the times(8) is simply just a temporary fix
-                // double turnSpeed = -m_gyroPID.calculate(getGyroscope().getRadians(), heading.get().getRadians()) * 8;
-                // System.out.println(turnSpeed);
-                // System.out.println(Math.abs(heading.get().getDegrees() - getGyroscope().getDegrees()));
-                // if (Math.abs(turnSpeed) > Constants.kMaxAngularVelocity) turnSpeed = Constants.kMaxAngularVelocity * Math.signum(turnSpeed);
-                // if (Math.abs(heading.get().getDegrees() - getGyroscope().getDegrees()) < Constants.kHeadingTolerance) turnSpeed = 0;
                 final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(// NOTE THE NEGATIVE SIGN!!
-
                     ChassisSpeeds.fromRobotRelativeSpeeds(fwdVelocity, strafeVelocity, -turn.get().in(RadiansPerSecond)*8, getGyroscope())
                     );
                 for (int i = 0; i < states.length; ++i) {
@@ -405,7 +403,7 @@ public class SwerveDrivetrain extends SubsystemBase {
      * @return The value of the gyroscope.
      */
     private Rotation2d getGyroscope() {
-        return Rotation2d.fromDegrees(m_gyroscope.getAngle());
+        return Rotation2d.fromDegrees(m_gyroscope.getAngle()).times(-1);
     }
 
     /**
