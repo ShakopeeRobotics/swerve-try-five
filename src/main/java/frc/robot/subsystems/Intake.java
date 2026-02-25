@@ -37,7 +37,7 @@ public class Intake extends SubsystemBase {
             secondIntakeRoller.set(-0.40);
             //feederRoller.setVoltage(-9.5);
         }, () -> {
-            secondIntakeRoller.setVoltage(0);
+            secondIntakeRoller.set(0/12);
             //feederRoller.setVoltage(0);
         });
     }

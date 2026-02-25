@@ -31,35 +31,35 @@ public class Fuel extends SubsystemBase {
 
     public Command launchCommand() {
         return this.run(() -> {
-            intakeLauncherRoller.setVoltage(10.6*0.8);
-            feederRoller.setVoltage(-6);
+            intakeLauncherRoller.set(10.6*0.8/12);
+            feederRoller.set(-6/12);
         //}).withTimeout(1).andThen(() -> {
            // intakeLauncherRoller.setVoltage(10.6*0.8);
            // feederRoller.setVoltage(9*0.6);
         }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
-            intakeLauncherRoller.setVoltage(0);
-            feederRoller.setVoltage(0);
+            intakeLauncherRoller.set(0);
+            feederRoller.set(0);
         });
     }
     public Command shortLaunchCommand() {
         return this.run(() -> {
-            intakeLauncherRoller.setVoltage(10.6*0.7);
-            feederRoller.setVoltage(-6);
+            intakeLauncherRoller.set(10.6*0.7/12);
+            feederRoller.set(-6/12);
         //}).withTimeout(1).andThen(() -> {
            // intakeLauncherRoller.setVoltage(10.6*0.8);
            // feederRoller.setVoltage(9*0.6);
         }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
-            intakeLauncherRoller.setVoltage(0);
-            feederRoller.setVoltage(0);
+            intakeLauncherRoller.set(0);
+            feederRoller.set(0);
         });
     }
     public Command ejectCommand() {
         return this.startEnd(() -> {
-            intakeLauncherRoller.setVoltage(-10);
-            feederRoller.setVoltage(12);
+            intakeLauncherRoller.set(-10/12);
+            feederRoller.set(12/12);
         }, () -> {
-            intakeLauncherRoller.setVoltage(0);
-            feederRoller.setVoltage(0);
+            intakeLauncherRoller.set(0);
+            feederRoller.set(0);
         });
     }
 }
