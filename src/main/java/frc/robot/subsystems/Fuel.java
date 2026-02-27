@@ -32,10 +32,10 @@ public class Fuel extends SubsystemBase {
     public Command launchCommand() {
         return this.run(() -> {
             intakeLauncherRoller.set(10.6*0.8/12);
-            feederRoller.set(-6/12);
-        //}).withTimeout(1).andThen(() -> {
-           // intakeLauncherRoller.setVoltage(10.6*0.8);
-           // feederRoller.setVoltage(9*0.6);
+            feederRoller.set(-2/12);
+        }).withTimeout(1).andThen(() -> {
+           intakeLauncherRoller.set(10.6*0.8/12);
+           feederRoller.set(-9*0.6/12);
         }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
             intakeLauncherRoller.set(0);
             feederRoller.set(0);

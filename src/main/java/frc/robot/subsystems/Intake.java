@@ -34,7 +34,7 @@ public class Intake extends SubsystemBase {
     public Command intakeCommand() {
         return this.startEnd(() -> {
             //intakeLauncherRoller.setVoltage(10*.9);
-            secondIntakeRoller.set(-0.40);
+            secondIntakeRoller.set(0.80);
             //feederRoller.setVoltage(-9.5);
         }, () -> {
             secondIntakeRoller.set(0/12);

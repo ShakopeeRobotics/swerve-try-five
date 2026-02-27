@@ -80,7 +80,11 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    m_robotContainer.getJoystick()
+    .setRumble(RumbleType.kBothRumble, m_robotContainer.getDrivetrain()
+    .getRumble());
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
@@ -131,7 +135,11 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+    // m_robotContainer.getJoystick()
+    // .setRumble(RumbleType.kBothRumble, m_robotContainer.getDrivetrain()
+    // .getRumble());
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override

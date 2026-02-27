@@ -12,6 +12,7 @@ import frc.robot.subsystems.Intake;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Voltage;
@@ -47,6 +48,7 @@ public class RobotContainer {
     SmartDashboard.putData("Swerve Drive", m_drivetrain);
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
     m_autoChooser.setDefaultOption("Win The Game", Autos.doNothing(m_drivetrain));
+    m_autoChooser.addOption("Lose The Game", Autos.goBackAndScore(m_drivetrain, m_fuel));
     m_autoChooser.addOption("Go Forward", Autos.driveForward(m_drivetrain, 5.0));
     m_autoChooser.addOption("Go Forward Longer", Autos.driveForward(m_drivetrain, 50.0));
     m_autoChooser.addOption("Spin In Place", Autos.spinInPlace(m_drivetrain, 50.0));
@@ -58,6 +60,7 @@ public class RobotContainer {
     m_autoChooser.addOption("Steer System Id", Autos.steerSystemId(m_drivetrain));
     SmartDashboard.putData("Autonomous Chooser", m_autoChooser);
     DriverStation.silenceJoystickConnectionWarning(true);
+    CameraServer.startAutomaticCapture();
     configureBindings();
   }
 

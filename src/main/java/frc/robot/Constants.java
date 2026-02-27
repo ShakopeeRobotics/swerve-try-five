@@ -31,7 +31,7 @@ public final class Constants {
     public static final double kADrive = 0.1;
 
     // note: this doesn't mean anything right now except for joystick inputs
-    public static final double kMaxVelocity = 6.0;//4.0;
+    public static final double kMaxVelocity = 12.0;//6.0;//4.0;
     public static final double kMaxAcceleration = 2.5;
     public static final double kMaxAngularVelocity = Units.degreesToRadians(180)/5;
     public static final double kMaxAngularAcceleration = Units.degreesToRadians(120)/5;
@@ -109,7 +109,7 @@ public final class Constants {
     //public static final double kPDrive = 0.0;
     public static final double kIDrive = 0.0;
     public static final double kDDrive = 0.0;
-    public static final double kFFDrive = 0.171/4;
+    public static final double kFFDrive = 0.171;
     //public static final double kFFDrive = 0.171;
     //public static final double kFFDrive = 2.0;
     //public static final double kFFDrive = 0.0;

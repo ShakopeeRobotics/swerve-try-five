@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import frc.robot.Constants;
+import frc.robot.subsystems.Fuel;
 import frc.robot.subsystems.SwerveDrivetrain;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -19,6 +20,22 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 public final class Autos {
   public static Command doNothing(SwerveDrivetrain drivetrain) {
     return drivetrain.runOnce(() -> {});
+  }
+
+  public static Command goBackAndScore(SwerveDrivetrain drivetrain, Fuel fuel) {
+    return drivetrain.driveHeadingCommand(()->-1.0, ()->0.0, ()->DegreesPerSecond.zero())
+      .withTimeout(Seconds.of(1.0))
+      .andThen(fuel.shortLaunchCommand())
+      .withTimeout(Seconds.of(5.0))
+      .withName("Do Something");
+      
+  }
+
+  /*
+   * 
+   */
+  public static Command followPath(SwerveDrivetrain drivetrain) {
+    return doNothing(drivetrain);
   }
   
   public static Command driveForward(SwerveDrivetrain drivetrain, double timeout) {
