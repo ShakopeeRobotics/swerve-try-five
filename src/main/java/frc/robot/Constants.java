@@ -64,10 +64,18 @@ public final class Constants {
 
     public static final int[] kEncoders = { 1, 2, 3, 4 };
     public static final double[] kEncoderZeros = {
-        0.5749422893735572,//0.396,
-        0.5389098134727454,//0.543,
-        0.825467320636683,//0.828,
-        0.8962789724069743,//0.9
+        0.6262, // 0.5749422893735572,//0.396,
+        0.041, // 0.5389098134727454,//0.543,
+        0.310, // 0.825467320636683,//0.828,
+        0.385 // 0.8962789724069743,//0.9
+
+        /*
+         *  First alignement attempt
+         * 0.6262
+         * 0.539
+         * 0.823
+         * 0.882
+         */
     };
 
     public static final boolean kCosineScale = true;
