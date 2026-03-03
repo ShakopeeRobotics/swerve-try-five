@@ -5,7 +5,7 @@
 package frc.robot.commands;
 
 import frc.robot.Constants;
-import frc.robot.subsystems.Fuel;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDrivetrain;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -22,7 +22,7 @@ public final class Autos {
     return drivetrain.runOnce(() -> {});
   }
 
-  public static Command goBackAndScore(SwerveDrivetrain drivetrain, Fuel fuel) {
+  public static Command goBackAndScore(SwerveDrivetrain drivetrain, ShooterSubsystem fuel) {
     return drivetrain.driveHeadingCommand(()->-1.0, ()->0.0, ()->DegreesPerSecond.zero())
       .withTimeout(Seconds.of(1.0))
       .andThen(fuel.shortLaunchCommand())

@@ -64,10 +64,10 @@ public final class Constants {
 
     public static final int[] kEncoders = { 1, 2, 3, 4 };
     public static final double[] kEncoderZeros = {
-        0.5749422893735572,//0.396,
-        0.5389098134727454,//0.543,
-        0.825467320636683,//0.828,
-        0.8962789724069743,//0.9
+        0.625, // 0.5749422893735572,//0.396, //0.047, 
+        0.539, // 0.5389098134727454,//0.543, //
+        0.823, // 0.825467320636683,//0.828, // .625
+        0.889// 0.8962789724069743,//0.9 .323
     };
 
     public static final boolean kCosineScale = true;
@@ -76,7 +76,6 @@ public final class Constants {
     public static final boolean kUseHeading = true;
     public static final double kHeadingTolerance = 3;
     // IN THE WORKS!!
-
 
     public static final Rotation2d kBlueOffset = Rotation2d.kZero;
     public static final Rotation2d kRedOffset = Rotation2d.k180deg;
@@ -120,4 +119,8 @@ public final class Constants {
 
     // The one solo simulation variable for now
     public static final double kSimNoise = 1.1e-5;
+
+    // TODO - DE:
+    // I'm putting application-wide reuseable constant variables here.
+    public static final double motorOffSpeed = 0;
 }

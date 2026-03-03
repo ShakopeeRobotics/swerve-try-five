@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -31,12 +33,14 @@ public class SwerveModule implements Sendable {
     // Motor and encoder setup
     // STEER is in terms of rots and RPM
     // DRIVE is in terms of meters and m/s
-    private final SparkMax m_steerMotor;
     private final SparkMax m_driveMotor;
-    private final RelativeEncoder m_steerEncoder;
+    private final SparkMax m_turnMotor;
+    
     private final RelativeEncoder m_driveEncoder;
-
-    private final DutyCycleEncoder m_absoluteEncoder;
+    private final RelativeEncoder m_turnEncoder;
+    
+    private final CANcoder m_absoluteEncoder;
+    
 
     public final int swerveModNum;
     private Rotation2d steerSetpoint = Rotation2d.kZero;
@@ -50,12 +54,16 @@ public class SwerveModule implements Sendable {
     private FlywheelSim m_steerFlysim;
     private FlywheelSim m_driveFlysim;
 
-    public SwerveModule(int steerId, int driveId, int swerveNum) {
+    public SwerveModule(
+        int turnMotorId,
+        int driveMotorId,
+        int swerveNum) {
         swerveModNum = swerveNum;
-        m_steerMotor = new SparkMax(steerId, MotorType.kBrushless);
-        m_driveMotor = new SparkMax(driveId, MotorType.kBrushless);
+        m_turnMotor = new SparkMax(turnMotorId, MotorType.kBrushless);
+        m_driveMotor = new SparkMax(driveMotorId, MotorType.kBrushless);
+
         //configureMotor(m_steerMotor, 0.01, 0, 0, 0.02, STEER_GEARING);
-        configureMotor(m_steerMotor,
+        configureMotor(m_turnMotor,
             Constants.kPSteer, Constants.kISteer, Constants.kDSteer, Constants.kFFSteer,
             Constants.kSteerGearing, Constants.kSteerGearing,
             0.2);
@@ -64,16 +72,25 @@ public class SwerveModule implements Sendable {
             Constants.kWheelCircum.times(Constants.kDriveGearing).in(Meters), Constants.kWheelCircum.times(Constants.kDriveGearing).div(60).in(Meters),
             0.8);
         
-        m_steerEncoder = m_steerMotor.getEncoder();
-        //m_steerEncoder.setPosition(swerveNum);
+        m_turnEncoder = m_turnMotor.getEncoder();
         m_driveEncoder = m_driveMotor.getEncoder();
+        //m_steerEncoder.setPosition(swerveNum);
 
-        m_absoluteEncoder = new DutyCycleEncoder(Constants.kEncoders[swerveModNum-1]-1);
-        resetEncoders();
+        // Swerve Number 1 - FL - DIO Port 1/4
+        // Swerve Number 2 - FR - DIO Port 3
+        // Swerve Number 3 - BL - DIO Port 1/4
+        // Swerve Number 4 - BR - DIO Port 2
+        //m_absoluteEncoder = new DutyCycleEncoder(absoluteEncoderId);
+
+
+        m_absoluteEncoder = new CANcoder(Constants.kEncoders[swerveModNum-1]-1);
+
+        // System.out.println("Climbing...");
+        // 
         
         //m_steerEncoder.setPosition(-m_absoluteEncoder.get()+Constants.kZeroEncoders[swerveModNum-1]);
 
-            m_steerSparkSim = new SparkSim(m_steerMotor, DCMotor.getNEO(1));
+            m_steerSparkSim = new SparkSim(m_turnMotor, DCMotor.getNEO(1));
             m_driveSparkSim = new SparkSim(m_driveMotor, DCMotor.getNEO(1));
             m_steerFlysim = new FlywheelSim(
                 LinearSystemId.identifyVelocitySystem(Constants.kVSteer, Constants.kASteer),
@@ -83,6 +100,8 @@ public class SwerveModule implements Sendable {
                 LinearSystemId.identifyVelocitySystem(Constants.kVDrive * Constants.kWheelRadius.in(Meters), Constants.kADrive * Constants.kWheelRadius.in(Meters)),
                 DCMotor.getNEO(1),
                 Constants.kSimNoise);
+
+        resetEncoders();
     }
 
     /**
@@ -112,19 +131,33 @@ public class SwerveModule implements Sendable {
         motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
 
+    // NOTE: As we are switching to the CANCoders, the hope is that these functions won't be needed.
+    // public double getAbsoluteEncoderRotations()
+    // {
+    //     double encoderAbsoluteValue = m_absoluteEncoder.get();
+    //     encoderAbsoluteValue = encoderAbsoluteValue - absoluteEncoderOffsetRotations;
+    //     // angle = (angle % 1.0 + 1.0) % 1.0;
+    //     return absoluteEncoderReversed ? -encoderAbsoluteValue : encoderAbsoluteValue;
+    // }
+
     /**
      * Reset the encoders.
+     * NOTE: Turn encoder is currently not being reset here.
      */
     public void resetEncoders() {
+        m_driveEncoder.setPosition(0);
+        //m_turnEncoder.setPosition(getAbsoluteEncoderRotations());
         //m_driveMotor.getEncoder().setPosition(0.0);
-        m_steerMotor.getEncoder().setPosition(Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.get());
+
+        // May need this
+        // m_turnMotor.getEncoder().setPosition(Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.get());
     }
 
     /**
      * Update position of swerve module.
      */
     public void updatePosition() {
-        m_position = new SwerveModulePosition(getDrivePosition(), Rotation2d.fromRotations(m_steerEncoder.getPosition()));
+        m_position = new SwerveModulePosition(getDrivePosition(), Rotation2d.fromRotations(m_turnEncoder.getPosition()));
         // push to smartdashboard
     }
 
@@ -148,7 +181,7 @@ public class SwerveModule implements Sendable {
      * @param volts The voltage to apply.
      */
     public void setSteer(Voltage volts) {
-        m_steerMotor.setVoltage(volts);
+        m_turnMotor.setVoltage(volts);
     }
 
     /**
@@ -171,14 +204,14 @@ public class SwerveModule implements Sendable {
      * @return Velocity of the steer motor.
      */
     public double getSteerVelocity() {
-        return m_steerEncoder.getVelocity();
+        return m_turnEncoder.getVelocity();
     }
 
     /**
      * @return Angle of the swerve module.
      */
     public Rotation2d getSteerAngle() {
-        return Rotation2d.fromRotations(m_steerEncoder.getPosition());
+        return Rotation2d.fromRotations(m_turnEncoder.getPosition());
     }
 
     /**
@@ -194,7 +227,7 @@ public class SwerveModule implements Sendable {
      * @return Applied voltage of steer motor.
      */
     public Voltage getSteerVoltage() {
-        return Volts.of(m_steerMotor.getBusVoltage()).times(m_steerMotor.getAppliedOutput());
+        return Volts.of(m_turnMotor.getBusVoltage()).times(m_turnMotor.getAppliedOutput());
     }
 
     public Voltage getCurrentDraw() {
@@ -221,7 +254,7 @@ public class SwerveModule implements Sendable {
     public void goToState(LinearVelocity drive, Rotation2d steer) {
         driveSetpoint = drive;
         steerSetpoint = steer;
-        if (drive != MetersPerSecond.zero()) m_steerMotor.getClosedLoopController().setSetpoint(
+        if (drive != MetersPerSecond.zero()) m_turnMotor.getClosedLoopController().setSetpoint(
             steer.getRotations(), ControlType.kPosition);
         m_driveMotor.getClosedLoopController().setSetpoint(drive.in(MetersPerSecond), ControlType.kVelocity);
     }
@@ -233,7 +266,7 @@ public class SwerveModule implements Sendable {
         m_steerFlysim.update(0.02);
         m_driveFlysim.update(0.02);
         m_steerSparkSim.iterate(
-            m_steerMotor.configAccessor.encoder.getVelocityConversionFactor() * m_steerFlysim.getAngularVelocityRPM(),
+            m_turnMotor.configAccessor.encoder.getVelocityConversionFactor() * m_steerFlysim.getAngularVelocityRPM(),
             busVoltage,
             0.02);
         m_driveSparkSim.iterate(
@@ -250,9 +283,9 @@ public class SwerveModule implements Sendable {
         builder.addDoubleProperty("Drive Velocity", this::getVelocity, null);
         //builder.addDoubleProperty("Drive Position", () -> m_driveEncoder.getPosition(), null);
         //builder.addDoubleProperty("Steer Position", () -> this.getSteerAngle().getDegrees(), null);
-        builder.addDoubleProperty("Steer Position", () -> m_steerEncoder.getPosition(), null);
+        builder.addDoubleProperty("Steer Position", () -> m_turnEncoder.getPosition(), null);
 
-        builder.addDoubleProperty("Steer Encoder DIO", () -> m_absoluteEncoder.get(), null);
-        builder.addDoubleProperty("Reading w OFfset", () -> Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.get(), null);
+        builder.addDoubleProperty("Steer Encoder DIO", () -> m_absoluteEncoder.getPosition().getValueAsDouble(), null);
+        builder.addDoubleProperty("Reading w OFfset", () -> Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.getPosition().getValueAsDouble(), null);
     }
 }

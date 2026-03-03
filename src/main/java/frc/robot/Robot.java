@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -25,10 +24,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
   private Command m_autoCommand;
-
   private final RobotContainer m_robotContainer;
-  private final Timer m_autoTimer = new Timer();
-  private final Timer m_teleopTimer = new Timer();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -47,37 +43,37 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+
+    // TODO - DE: You don't want to have all these SmartDashboard outputs in robotPeriodic.
+    // They should be moved to a different class.
+
     // TODO: figure out why this does not work outside of FMS
-    if (DriverStation.isFMSAttached())
+    if (DriverStation.isFMSAttached()) {
       SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
-    else if (DriverStation.isAutonomousEnabled())
-      SmartDashboard.putNumber("Match Time", m_autoTimer.get());
-    else if (DriverStation.isTeleopEnabled())
-      SmartDashboard.putNumber("Match Time", m_teleopTimer.get());
-    else
+    }
+    else {
       SmartDashboard.putNumber("Match Time", 0.0);
+    }
+      
     SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
     SmartDashboard.putBoolean("Joystick", DriverStation.isJoystickConnected(0));
     SmartDashboard.putBoolean("FMS", DriverStation.isFMSAttached());
     SmartDashboard.putBoolean("DS", DriverStation.isDSAttached());
+    SmartDashboard.putNumber("Joysticks/X", m_robotContainer.getJoystick().getX());
+    SmartDashboard.putNumber("Joysticks/Y", m_robotContainer.getJoystick().getY());
+    SmartDashboard.putNumber("Joysticks/Z", m_robotContainer.getJoystick().getZ());
+
     CommandScheduler.getInstance().run();
-    //System.out.println(m_robotContainer )
+
     if (RobotBase.isSimulation()) {
       double vbus = BatterySim.calculateDefaultBatteryLoadedVoltage(m_robotContainer.getCurrentDraw().in(Volts));
       RoboRioSim.setVInVoltage(vbus);
     }
-
-    SmartDashboard.putNumber("Joysticks/X", m_robotContainer.getJoystick().getX());
-    SmartDashboard.putNumber("Joysticks/Y", m_robotContainer.getJoystick().getY());
-    SmartDashboard.putNumber("Joysticks/Z", m_robotContainer.getJoystick().getZ());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
-  public void disabledInit() {
-    m_autoTimer.stop();
-    m_teleopTimer.stop();
-  }
+  public void disabledInit() {}
 
   @Override
   public void disabledPeriodic() {
@@ -90,31 +86,44 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autoCommand = m_robotContainer.getAutonomousCommand();
-    m_autoTimer.reset();
-    m_autoTimer.start();
-    m_robotContainer.getResetEncodersCommand().schedule();
+
+    // TODO - DE:
+    // We shouldn't have to reset encoders here. We don't want to update the relative encoder's idea of '0'.
+    // This means the wheels have to be perfectly straight each time the robot is turned on.
+    
+    // m_robotContainer.getResetEncodersCommand().schedule();
+    
     if (m_autoCommand != null) {
-      m_autoCommand.schedule();
+    // TODO - DE:
+    // m_autoCommand.schedule(); is deprecated and shouldn't be used.
+    // Use CommandScheduler.getInstance().schedule(m_autoCommand); instead.
+
+    // m_autoCommand.schedule();
+
+      CommandScheduler.getInstance().schedule(m_autoCommand);
     }
   }
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {
-
-  }
+  public void autonomousPeriodic() {}
 
   @Override
   public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
-    // this line or comment it out.
-    m_robotContainer.getResetEncodersCommand().schedule();
-    m_teleopTimer.reset();
-    m_teleopTimer.start();
+    // TODO - DE:
+    // We shouldn't have to reset encoders here. We don't want to update the relative encoder's idea of '0'.
+    // This means the wheels have to be perfectly straight each time the robot is turned on.
+    
+    // m_robotContainer.getResetEncodersCommand().schedule();
+
     if (m_autoCommand != null) {
-      m_autoCommand.cancel();
+      // TODO - DE:
+      // Although m_autoCommand.cancel(); is not deprecated yet, we should use:
+      // CommandScheduler.getInstance().cancel(m_autoCommand); for consistency.
+      
+      // m_autoCommand.cancel();
+      
+      CommandScheduler.getInstance().cancel(m_autoCommand);
     }
   }
 
@@ -129,17 +138,19 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     // Cancels all running commands at the start of test mode.
-    m_robotContainer.getResetEncodersCommand().schedule();
+
+    // TODO - DE:
+    // We shouldn't have to reset encoders here. We don't want to update the relative encoder's idea of '0'.
+    // This means the wheels have to be perfectly straight each time the robot is turned on.
+    
+    // m_robotContainer.getResetEncodersCommand().schedule();
+
     CommandScheduler.getInstance().cancelAll();
   }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {
-    // m_robotContainer.getJoystick()
-    // .setRumble(RumbleType.kBothRumble, m_robotContainer.getDrivetrain()
-    // .getRumble());
-  }
+  public void testPeriodic() {}
 
   /** This function is called once when the robot is first started up. */
   @Override

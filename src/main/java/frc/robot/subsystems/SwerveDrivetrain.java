@@ -52,19 +52,39 @@ public class SwerveDrivetrain extends SubsystemBase {
     private final SendableChooser<Pose2d> m_chooser = new SendableChooser<>();
     private Pose2d m_lastChoice;
     // x = forward, y = strafe
-    // All setup
+
+    // TODO - DE:
+    // The swerve modules should follow the standard and be setup in the order:
+    // FL, FR, BL, BR
+    // The reason for this is consistency and following a common established pattern.
+    // This makes troubleshooting, debugging, and having other people unknown to your code base
+    // assist without confusion because it's following the standard.
+
     private final SwerveModule[] m_modules = new SwerveModule[]{
-        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 4), // top right
-        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 2), // top left
-        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 3), // bottom right
-        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 1) // bottom left
+        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 1), // front left
+        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 2), // front right
+        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 3), // back left
+        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 4), // back right
     };
+
+    // TODO - DE:
+    // The kinematics MUST have the proper distance from center of robot in order to function
+    // properly and have swerve behave.
+    // The X parameter is positive to the front of robot and negative to the back.
+    // The Y parameter is positive to the left of robot and negative to the right.
+    // This makes:
+    // fl = + / +
+    // fr = + / -
+    // bl = - / +
+    // br = - / -
+
     private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(new Translation2d[]{
-        new Translation2d(Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // top right
-        new Translation2d(Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // top left
-        new Translation2d(-Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // bottom right
-        new Translation2d(-Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // bottom left
+        new Translation2d(Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // front left
+        new Translation2d(Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // front right
+        new Translation2d(-Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // back left
+        new Translation2d(-Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // back right
     });
+
     private final SwerveDriveOdometry m_odometry =
         new SwerveDriveOdometry(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
             m_modules[0].getPosition(),
@@ -72,9 +92,10 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
-    private final Field2d m_field = new Field2d();
-    // Vision correction
 
+    private final Field2d m_field = new Field2d();
+    
+    // Vision correction
     private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
         m_modules[0].getPosition(),
         m_modules[1].getPosition(),
@@ -107,6 +128,7 @@ public class SwerveDrivetrain extends SubsystemBase {
                 }
             }, this)
     );
+
     private final SysIdRoutine m_steerSysIdRoutine = new SysIdRoutine(
         new SysIdRoutine.Config(),
         new SysIdRoutine.Mechanism(
@@ -162,21 +184,28 @@ public class SwerveDrivetrain extends SubsystemBase {
         for (final SwerveModule module : m_modules) {
             SmartDashboard.putData(String.format("Swerve Module %d", module.swerveModNum), module);  
         }
-        for (int i = 1; i <= Constants.kNumTags; ++i)
+        for (int i = 1; i <= Constants.kNumTags; ++i) {
             SmartDashboard.putData(String.format("Go To AprilTag %d", i), this.goToAprilTag(i));
-        SmartDashboard.putData("Reset All Encoders", this.resetAllEncoders());
-        SmartDashboard.putData("Reset All Encoders v2", this.resetEncoders());
+        }
+
+        // TODO - DE: We shouldn't be resetting the encoders.
+        // SmartDashboard.putData("Reset All Encoders", this.resetAllEncoders());
+        // SmartDashboard.putData("Reset All Encoders v2", this.resetEncoders());
     }
 
     @Override
     public void periodic() {
-        for (final SwerveModule module : m_modules) module.updatePosition();
+        for (final SwerveModule module : m_modules) {
+            module.updatePosition();
+        }
+
         m_odometry.update(getGyroscope(), new SwerveModulePosition[]{
             m_modules[0].getPosition(),
             m_modules[1].getPosition(),
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
+
         //m_poseEstimator.addVisionMeasurement(m_vision.getBotPose(), Timer.getFPGATimestamp());
         m_poseEstimator.updateWithTime(Timer.getFPGATimestamp(), getGyroscope(),  new SwerveModulePosition[]{
             m_modules[0].getPosition(),
@@ -184,7 +213,9 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
+
         LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+        
         if (limelightMeasurement.tagCount >= 2) {
             m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
             m_poseEstimator.addVisionMeasurement(
@@ -192,13 +223,17 @@ public class SwerveDrivetrain extends SubsystemBase {
                 limelightMeasurement.timestampSeconds
             );
         }
+
         if (m_chooser.getSelected() != m_lastChoice) {
             m_odometry.resetPose(m_chooser.getSelected());
             m_lastChoice = m_chooser.getSelected();
-            if (RobotBase.isSimulation())
+
+            if (RobotBase.isSimulation()) {
                 m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
-            else
+            } 
+            else {
                 m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
+            }     
         }
         m_field.setRobotPose(m_odometry.getPoseMeters());
     }
@@ -224,6 +259,8 @@ public class SwerveDrivetrain extends SubsystemBase {
         //m_gyroscope.setGyroAngle(Constants.kYawAxis, m_heading.getDegrees());
     }
 
+    // TODO - DE: We shouldn't need to reset encoders.
+    /* 
     public Command resetEncoders() {
         return this.runOnce(() -> {
             for (int i = 0; i < m_modules.length; ++i) {
@@ -231,6 +268,7 @@ public class SwerveDrivetrain extends SubsystemBase {
             }
         });
     }
+    */
 
     /**
      * Only for sysid.
@@ -284,16 +322,19 @@ public class SwerveDrivetrain extends SubsystemBase {
                 double fwdVelocity = -fwd.getAsDouble(); // NOTE THE NEGATIVE SIGN!!
                 double strafeVelocity = -strafe.getAsDouble();
                 double magnitude = Math.hypot(fwdVelocity, strafeVelocity);
+
                 if (Math.hypot(fwdVelocity, strafeVelocity) > Constants.kMaxVelocity) {
                     fwdVelocity *= Constants.kMaxVelocity / magnitude;
                     strafeVelocity *= Constants.kMaxVelocity / magnitude;
                 }
+
                 // note: the times(5) is simply just a temporary fix
                 final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(// NOTE THE NEGATIVE SIGN!!
                     new ChassisSpeeds(fwdVelocity, strafeVelocity, -turn.get()
                     .times(8)
                     .in(RadiansPerSecond))
-                    );
+                );
+
                 for (int i = 0; i < states.length; ++i) {
                     if (Constants.kCosineScale) {
                         states[i].cosineScale(m_modules[i].getPosition().angle);
@@ -313,17 +354,24 @@ public class SwerveDrivetrain extends SubsystemBase {
         // });
         return this.run(
             () -> {
-                double fwdVelocity = -fwd.getAsDouble(); // NOTE THE NEGATIVE SIGN!!
-                double strafeVelocity = -strafe.getAsDouble();
+                double fwdVelocity = fwd.getAsDouble(); // NOTE THE NEGATIVE SIGN!!
+                double strafeVelocity = strafe.getAsDouble();
                 double magnitude = Math.hypot(fwdVelocity, strafeVelocity);
+
                 if (Math.hypot(fwdVelocity, strafeVelocity) > Constants.kMaxVelocity) {
                     fwdVelocity *= Constants.kMaxVelocity / magnitude;
                     strafeVelocity *= Constants.kMaxVelocity / magnitude;
                 }
+
                 // note: the times(8) is simply just a temporary fix
                 final SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(// NOTE THE NEGATIVE SIGN!!
-                    ChassisSpeeds.fromRobotRelativeSpeeds(fwdVelocity, strafeVelocity, -turn.get().in(RadiansPerSecond)*8, getGyroscope())
+                    ChassisSpeeds.fromRobotRelativeSpeeds(
+                        fwdVelocity,
+                        strafeVelocity,
+                        -turn.get().in(RadiansPerSecond)*8,
+                        getGyroscope())
                     );
+
                 for (int i = 0; i < states.length; ++i) {
                     if (Constants.kCosineScale) {
                         states[i].cosineScale(m_modules[i].getPosition().angle);
@@ -348,7 +396,7 @@ public class SwerveDrivetrain extends SubsystemBase {
                 this.driveCommand(
                     () -> speeds.vxMetersPerSecond,
                     () -> speeds.vyMetersPerSecond,
-                    () -> RadiansPerSecond.of(speeds.omegaRadiansPerSecond)).execute();;
+                    () -> RadiansPerSecond.of(speeds.omegaRadiansPerSecond)).execute();
             }
         ).onlyWhile(() -> m_currentTrajectory.getTotalTimeSeconds() > m_trajectoryTimer.get());
     }
@@ -372,6 +420,9 @@ public class SwerveDrivetrain extends SubsystemBase {
             .withName(String.format("Go To AprilTag %d", aprilTag));
     }
 
+    // TODO - DE:
+    // We shouldn't have to reset encoders.
+    /*
     public Command resetAllEncoders() {
         return this.runOnce(
             () -> {
@@ -383,19 +434,20 @@ public class SwerveDrivetrain extends SubsystemBase {
             }
         );
     }
+    */
 
     // get it to work with elastic's swerve drive widget
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("SwerveDrive");
-        builder.addDoubleProperty("Front Left Angle", () -> m_modules[1].getSteerAngle().getRadians(), null);
-        builder.addDoubleProperty("Front Left Velocity", m_modules[1]::getVelocity, null);
-        builder.addDoubleProperty("Front Right Angle", () -> m_modules[0].getSteerAngle().getRadians(), null);
-        builder.addDoubleProperty("Front Right Velocity", m_modules[0]::getVelocity, null);
-        builder.addDoubleProperty("Back Left Angle", () -> m_modules[3].getSteerAngle().getRadians(), null);
-        builder.addDoubleProperty("Back Left Velocity", m_modules[3]::getVelocity, null);
-        builder.addDoubleProperty("Back Right Angle", () -> m_modules[2].getSteerAngle().getRadians(), null);
-        builder.addDoubleProperty("Back Right Velocity", m_modules[2]::getVelocity, null);
+        builder.addDoubleProperty("Front Left Angle", () -> m_modules[0].getSteerAngle().getRadians(), null);
+        builder.addDoubleProperty("Front Left Velocity", m_modules[0]::getVelocity, null);
+        builder.addDoubleProperty("Front Right Angle", () -> m_modules[1].getSteerAngle().getRadians(), null);
+        builder.addDoubleProperty("Front Right Velocity", m_modules[1]::getVelocity, null);
+        builder.addDoubleProperty("Back Left Angle", () -> m_modules[2].getSteerAngle().getRadians(), null);
+        builder.addDoubleProperty("Back Left Velocity", m_modules[2]::getVelocity, null);
+        builder.addDoubleProperty("Back Right Angle", () -> m_modules[3].getSteerAngle().getRadians(), null);
+        builder.addDoubleProperty("Back Right Velocity", m_modules[3]::getVelocity, null);
         builder.addDoubleProperty("Robot Angle", () -> this.getGyroscope().plus(Rotation2d.kCCW_Pi_2).getRadians(), null);
     }
 
