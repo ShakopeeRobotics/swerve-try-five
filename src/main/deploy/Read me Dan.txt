@@ -1,0 +1,7 @@
+Hello, so everything that is in this "deploy" Folder is what i got from YetAnotherGenericSwerveLibrary. 
+It said that all the files should end in .json
+And that all the programing for the swerve base should be in "deploy" because they are data files not-
+- source codd, it also says there is no recompilling, you have "on robot access" and it "keeps teh "src" folder clean".
+i went through and worked out all the config stuff for the modduals and i have it set so that all the motors are inverted.
+let me know your thought on this, it makes sense in my head, at least the structure of the code. 
+¯\_(ツ)_/¯
