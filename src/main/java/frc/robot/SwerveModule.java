@@ -148,7 +148,7 @@ public class SwerveModule implements Sendable {
      */
     public void resetEncoders() {
         m_driveEncoder.setPosition(0);
-        double absolutePosition = m_absoluteEncoder.getPosition().getValueAsDouble();
+        double absolutePosition = m_absoluteEncoder.getAbsolutePosition().getValueAsDouble();
         m_turnEncoder.setPosition(absolutePosition);
         //m_driveMotor.getEncoder().setPosition(0.0);
 
@@ -289,6 +289,6 @@ public class SwerveModule implements Sendable {
         builder.addDoubleProperty("Steer Position", () -> m_turnEncoder.getPosition(), null);
 
         builder.addDoubleProperty("Steer Encoder DIO", () -> m_absoluteEncoder.getPosition().getValueAsDouble(), null);
-        builder.addDoubleProperty("Reading w OFfset", () -> Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.getPosition().getValueAsDouble(), null);
+       // builder.addDoubleProperty("Reading w OFfset", () -> Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.getPosition().getValueAsDouble(), null);
     }
 }
