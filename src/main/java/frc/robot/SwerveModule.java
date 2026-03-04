@@ -40,6 +40,8 @@ public class SwerveModule implements Sendable {
     private final RelativeEncoder m_turnEncoder;
     
     private final CANcoder m_absoluteEncoder;
+    private final boolean m_turnMotorInverted;
+    private final boolean m_driveMotorInverted;
     
 
     public final int swerveModNum;
@@ -58,8 +60,12 @@ public class SwerveModule implements Sendable {
         int turnMotorId,
         int driveMotorId,
         int swerveNum,
-        int absoluteEncoderId) {
+        int absoluteEncoderId,
+        boolean turnInverted,
+        boolean driveInverted) {
         swerveModNum = swerveNum;
+        m_turnMotorInverted = turnInverted;
+        m_driveMotorInverted = driveInverted;
         m_turnMotor = new SparkMax(turnMotorId, MotorType.kBrushless);
         m_driveMotor = new SparkMax(driveMotorId, MotorType.kBrushless);
         m_absoluteEncoder = new CANcoder(absoluteEncoderId);
@@ -68,11 +74,11 @@ public class SwerveModule implements Sendable {
         configureMotor(m_turnMotor,
             Constants.kPSteer, Constants.kISteer, Constants.kDSteer, Constants.kFFSteer,
             Constants.kSteerGearing, Constants.kSteerGearing,
-            0.2);
+            0.2, m_turnMotorInverted);
         configureMotor(m_driveMotor,
             Constants.kPDrive, Constants.kIDrive, Constants.kDDrive, Constants.kFFDrive,
             Constants.kWheelCircum.times(Constants.kDriveGearing).in(Meters), Constants.kWheelCircum.times(Constants.kDriveGearing).div(60).in(Meters),
-            0.8);
+            0.8, m_driveMotorInverted);
         
         m_turnEncoder = m_turnMotor.getEncoder();
         m_driveEncoder = m_driveMotor.getEncoder();
@@ -103,7 +109,7 @@ public class SwerveModule implements Sendable {
                 DCMotor.getNEO(1),
                 Constants.kSimNoise);
 
-        resetEncoders();
+         resetEncoders();
     }
 
     /**
@@ -115,8 +121,10 @@ public class SwerveModule implements Sendable {
      * @param posFactor Position conversion factor.
      * @param velFactor Velocity conversion factor.
      */
-    private void configureMotor(SparkMax motor, double p, double i, double d, double ff, double posFactor, double velFactor, double outputRange) {
+    private void configureMotor(SparkMax motor, double p, double i, double d, double ff,
+    double posFactor, double velFactor, double outputRange, boolean inverted) {
         SparkMaxConfig config = new SparkMaxConfig();
+        config.inverted(inverted);
         config.smartCurrentLimit(130);
         config.closedLoop
             .pid(p, i, d)
@@ -148,13 +156,33 @@ public class SwerveModule implements Sendable {
      */
     public void resetEncoders() {
         m_driveEncoder.setPosition(0);
-        double absolutePosition = m_absoluteEncoder.getAbsolutePosition().getValueAsDouble();
-        m_turnEncoder.setPosition(absolutePosition);
+
+        m_absoluteEncoder.getAbsolutePosition().refresh();
+
+        double absolutePositionMechanism = m_absoluteEncoder.getAbsolutePosition().getValueAsDouble();
+        absolutePositionMechanism = absolutePositionMechanism % 1.0;
+        if (absolutePositionMechanism < 0) absolutePositionMechanism += 1.0;
+
+        System.out.println("module" + swerveModNum + " - CANcoder reads:" + absolutePositionMechanism + " setting NEO encoder to this value");
+        m_turnEncoder.setPosition(absolutePositionMechanism);
+
+        double neoPosition = m_turnEncoder.getPosition();
+        System.out.println("module" + swerveModNum + " - NEO encoder now reads:" + neoPosition);
+
+        if (Math.abs(neoPosition - absolutePositionMechanism) > 0.1)
+        {
+            System.out.println("WARNING: MODULE" + swerveModNum + "encoder sync failed. Difference:" + (neoPosition - absolutePositionMechanism));
+        }
+            
+    }
+
+        
+
+        
         //m_driveMotor.getEncoder().setPosition(0.0);
 
         // May need this
         // m_turnMotor.getEncoder().setPosition(Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.get());
-    }
 
     /**
      * Update position of swerve module.
@@ -257,7 +285,7 @@ public class SwerveModule implements Sendable {
     public void goToState(LinearVelocity drive, Rotation2d steer) {
         driveSetpoint = drive;
         steerSetpoint = steer;
-        if (drive != MetersPerSecond.zero()) m_turnMotor.getClosedLoopController().setSetpoint(
+        m_turnMotor.getClosedLoopController().setSetpoint(
             steer.getRotations(), ControlType.kPosition);
         m_driveMotor.getClosedLoopController().setSetpoint(drive.in(MetersPerSecond), ControlType.kVelocity);
     }
@@ -280,15 +308,12 @@ public class SwerveModule implements Sendable {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        //builder.setSmartDashboardType();
         builder.addDoubleProperty("Drive Setpoint", () -> driveSetpoint.in(MetersPerSecond), drive -> this.goToState(MetersPerSecond.of(drive), steerSetpoint));
         builder.addDoubleProperty("Steer Setpoint", () -> steerSetpoint.getDegrees(), steer -> this.goToState(driveSetpoint, Rotation2d.fromDegrees(steer)));
         builder.addDoubleProperty("Drive Velocity", this::getVelocity, null);
-        //builder.addDoubleProperty("Drive Position", () -> m_driveEncoder.getPosition(), null);
-        //builder.addDoubleProperty("Steer Position", () -> this.getSteerAngle().getDegrees(), null);
-        builder.addDoubleProperty("Steer Position", () -> m_turnEncoder.getPosition(), null);
-
-        builder.addDoubleProperty("Steer Encoder DIO", () -> m_absoluteEncoder.getPosition().getValueAsDouble(), null);
-       // builder.addDoubleProperty("Reading w OFfset", () -> Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.getPosition().getValueAsDouble(), null);
+        builder.addDoubleProperty("Steer Position (NEO)", () -> m_turnEncoder.getPosition(), null);
+        builder.addDoubleProperty("CANcoder Absolute (rots)", () -> m_absoluteEncoder.getAbsolutePosition().getValueAsDouble(), null);
+        // builder.addDoubleProperty("CANcoder Position (rots)", () -> m_absoluteEncoder.getPosition().getValueAsDouble(), null);
+        builder.addDoubleProperty("Steer Angle (deg)", () -> this.getSteerAngle().getDegrees(), null);
     }
 }

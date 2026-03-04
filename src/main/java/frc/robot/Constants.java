@@ -65,6 +65,17 @@ public final class Constants {
     public static final int kBLEncoderId = 15;
     public static final int kBREncoderId = 16;
 
+    public static final boolean kFLTurnInverted = true;
+    public static final boolean kFRTurnInverted = true;
+    public static final boolean kBLTurnInverted = true;
+    public static final boolean kBRTurnInverted = true;
+
+    public static final boolean kFLDriveInverted = true;
+    public static final boolean kFRDriveInverted = true;
+    public static final boolean kBLDriveInverted = true;
+    public static final boolean kBRDriveInverted = true;
+
+
     public static final double kBitMoreThanHalf = 0.55;
 
     public static final int[] kEncoders = { 1, 2, 3, 4 };

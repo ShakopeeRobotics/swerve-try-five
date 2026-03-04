@@ -61,10 +61,10 @@ public class SwerveDrivetrain extends SubsystemBase {
     // assist without confusion because it's following the standard.
 
     private final SwerveModule[] m_modules = new SwerveModule[]{
-        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 1, Constants.kFLEncoderId), // front left
-        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 2, Constants.kFREncoderId), // front right
-        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 3, Constants.kBLEncoderId), // back left
-        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 4, Constants.kBREncoderId), // back right
+        new SwerveModule(Constants.kFLSteerId,Constants.kFLDriveId, 1, Constants.kFLEncoderId, Constants.kFLTurnInverted, Constants.kFLDriveInverted), // front left
+        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 2, Constants.kFREncoderId, Constants.kFRTurnInverted, Constants.kFRDriveInverted), // front right
+        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 3, Constants.kBLEncoderId, Constants.kBLTurnInverted, Constants.kBLDriveInverted), // back left
+        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 4, Constants.kBREncoderId, Constants.kBRTurnInverted, Constants.kBRDriveInverted), // back right
     };
 
     // TODO - DE:
@@ -157,6 +157,9 @@ public class SwerveDrivetrain extends SubsystemBase {
     // Simulation variables
     private ADIS16470_IMUSim m_gyroSim;
 
+    private boolean m_encodersinitialized = false;
+    private int m_initCounter = 0;
+
     public SwerveDrivetrain() {
         addDashboardEntries();
         m_odometry.resetPose(m_chooser.getSelected());
@@ -195,6 +198,21 @@ public class SwerveDrivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
+
+        if (!m_encodersinitialized)
+        {
+            m_initCounter++;
+            if (m_initCounter > 10)
+            {
+                System.out.println("Initializing encoders");
+                for (final SwerveModule module : m_modules)
+                {
+                    module.resetEncoders();
+                }
+                m_encodersinitialized = true;
+                System.out.println("Swerve module encoders initialized!");
+            }
+        }
         for (final SwerveModule module : m_modules) {
             module.updatePosition();
         }
