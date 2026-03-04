@@ -57,10 +57,12 @@ public class SwerveModule implements Sendable {
     public SwerveModule(
         int turnMotorId,
         int driveMotorId,
-        int swerveNum) {
+        int swerveNum,
+        int absoluteEncoderId) {
         swerveModNum = swerveNum;
         m_turnMotor = new SparkMax(turnMotorId, MotorType.kBrushless);
         m_driveMotor = new SparkMax(driveMotorId, MotorType.kBrushless);
+        m_absoluteEncoder = new CANcoder(absoluteEncoderId);
 
         //configureMotor(m_steerMotor, 0.01, 0, 0, 0.02, STEER_GEARING);
         configureMotor(m_turnMotor,
@@ -83,7 +85,7 @@ public class SwerveModule implements Sendable {
         //m_absoluteEncoder = new DutyCycleEncoder(absoluteEncoderId);
 
 
-        m_absoluteEncoder = new CANcoder(Constants.kEncoders[swerveModNum-1]-1);
+        
 
         // System.out.println("Climbing...");
         // 
@@ -146,7 +148,8 @@ public class SwerveModule implements Sendable {
      */
     public void resetEncoders() {
         m_driveEncoder.setPosition(0);
-        //m_turnEncoder.setPosition(getAbsoluteEncoderRotations());
+        double absolutePosition = m_absoluteEncoder.getPosition().getValueAsDouble();
+        m_turnEncoder.setPosition(absolutePosition);
         //m_driveMotor.getEncoder().setPosition(0.0);
 
         // May need this

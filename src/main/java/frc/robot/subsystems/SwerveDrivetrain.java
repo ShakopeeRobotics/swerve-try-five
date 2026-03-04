@@ -61,10 +61,10 @@ public class SwerveDrivetrain extends SubsystemBase {
     // assist without confusion because it's following the standard.
 
     private final SwerveModule[] m_modules = new SwerveModule[]{
-        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 1), // front left
-        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 2), // front right
-        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 3), // back left
-        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 4), // back right
+        new SwerveModule(Constants.kFLSteerId, Constants.kFLDriveId, 1, Constants.kFLEncoderId), // front left
+        new SwerveModule(Constants.kFRSteerId, Constants.kFRDriveId, 2, Constants.kFREncoderId), // front right
+        new SwerveModule(Constants.kBLSteerId, Constants.kBLDriveId, 3, Constants.kBLEncoderId), // back left
+        new SwerveModule(Constants.kBRSteerId, Constants.kBRDriveId, 4, Constants.kBREncoderId), // back right
     };
 
     // TODO - DE:

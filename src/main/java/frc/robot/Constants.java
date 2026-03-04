@@ -60,16 +60,15 @@ public final class Constants {
     public static final int kSecondIntakeId = 11;
     public static final int kClimberId = 12;
 
+    public static final int kFLEncoderId = 13;
+    public static final int kFREncoderId = 14;
+    public static final int kBLEncoderId = 15;
+    public static final int kBREncoderId = 16;
+
     public static final double kBitMoreThanHalf = 0.55;
 
     public static final int[] kEncoders = { 1, 2, 3, 4 };
-    public static final double[] kEncoderZeros = {
-        0.625, // 0.5749422893735572,//0.396, //0.047, 
-        0.539, // 0.5389098134727454,//0.543, //
-        0.823, // 0.825467320636683,//0.828, // .625
-        0.889// 0.8962789724069743,//0.9 .323
-    };
-
+    
     public static final boolean kCosineScale = true;
 
     // Absolute heading mode for joystick control
