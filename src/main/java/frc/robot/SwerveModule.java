@@ -180,6 +180,7 @@ public class SwerveModule implements Sendable {
 
         
         //m_driveMotor.getEncoder().setPosition(0.0);
+        
 
         // May need this
         // m_turnMotor.getEncoder().setPosition(Constants.kEncoderZeros[swerveModNum-1] - m_absoluteEncoder.get());

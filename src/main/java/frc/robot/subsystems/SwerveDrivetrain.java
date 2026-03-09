@@ -47,6 +47,12 @@ import frc.robot.SwerveModule;
 import frc.robot.LimelightHelpers.LimelightResults;
 import frc.robot.LimelightHelpers.LimelightTarget_Fiducial;
 
+
+
+//4663 added import
+
+import com.ctre.phoenix6.hardware.Pigeon2;
+
 public class SwerveDrivetrain extends SubsystemBase {
     // Odometry positions
     private final SendableChooser<Pose2d> m_chooser = new SendableChooser<>();
@@ -145,22 +151,31 @@ public class SwerveDrivetrain extends SubsystemBase {
             }, this)
     );
 
+
+
+   
     // Gyroscope setup
-    private final ADIS16470_IMU m_gyroscope = new ADIS16470_IMU(
-        Constants.kYawAxis,
-        Constants.kPitchAxis,
-        Constants.kRollAxis);
+    //private final ADIS16470_IMU m_gyroscope = //new ADIS16470_IMU(
+     //   Constants.kYawAxis,
+       // Constants.kPitchAxis,
+       // Constants.kRollAxis);
     private final PIDController m_gyroPID = new PIDController(
         Constants.kPGyro,
         Constants.kIGyro,
-        Constants.kDGyro);
+       Constants.kDGyro);
     // Simulation variables
-    private ADIS16470_IMUSim m_gyroSim;
+
+     private final Pigeon2 m_gyroscope = new Pigeon2(20);
+   
+    //private ADIS16470_IMUSim m_gyroSim;
+
 
     private boolean m_encodersinitialized = false;
     private int m_initCounter = 0;
 
-    public SwerveDrivetrain() {
+
+    //Old code for Gyro
+   /*  public SwerveDrivetrain() {
         addDashboardEntries();
         m_odometry.resetPose(m_chooser.getSelected());
         if (RobotBase.isSimulation()) {
@@ -175,10 +190,33 @@ public class SwerveDrivetrain extends SubsystemBase {
             }
         ).withName("Default Swerve Command"));
     }
+*/
+// Added to work with Piegon
+   
+
+ public SwerveDrivetrain() {
+        addDashboardEntries();
+        m_odometry.resetPose(m_chooser.getSelected());
+        if (RobotBase.isSimulation()) {
+    
+            m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+        } else
+            m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+        m_gyroPID.enableContinuousInput(0.0, 2*Math.PI);
+        this.setDefaultCommand(this.run(
+            () -> {
+                for (final SwerveModule module : m_modules) module.goToState(MetersPerSecond.zero(), Rotation2d.kZero);
+            }
+        ).withName("Default Swerve Command"));
+    }
+
+
+// End of added 
+
 
     public void addDashboardEntries() {
         SmartDashboard.putData(m_field);
-        SmartDashboard.putData("Gyroscope", m_gyroscope);
+      // /*  SmartDashboard.putData*/SmartDashboard.putNumber("Gyroscope", m_gyroscope.getYaw());
         m_chooser.setDefaultOption("Blue Start", Constants.kBlueStart);
         m_chooser.addOption("Red Start", Constants.kRedStart);
         m_chooser.addOption("Zero", Constants.kZero);
@@ -247,14 +285,18 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_lastChoice = m_chooser.getSelected();
 
             if (RobotBase.isSimulation()) {
-                m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
+             //   m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees()); 
+             m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+            } 
             } 
             else {
-                m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
+              //  m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
+               m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
             }     
         }
-        m_field.setRobotPose(m_odometry.getPoseMeters());
-    }
+        //m_field.setRobotPose(m_odometry.getPoseMeters());
+         //m_field.setRobotPose(m_od)
+    
 
     @Override
     public void simulationPeriodic() {
@@ -273,7 +315,8 @@ public class SwerveDrivetrain extends SubsystemBase {
                 m_modules[3].getVelocity(),
                 m_modules[3].getSteerAngle())
         };
-        m_gyroSim.setGyroAngleZ(Rotation2d.fromDegrees(m_gyroscope.getAngle()).plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(states).omegaRadiansPerSecond).times(0.02)).getDegrees());
+       // m_gyroSim.setGyroAngleZ(Rotation2d.fromDegrees(m_gyroscope.getAngle()).plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(states).omegaRadiansPerSecond).times(0.02)).getDegrees());
+       
         //m_gyroscope.setGyroAngle(Constants.kYawAxis, m_heading.getDegrees());
     }
 
@@ -473,7 +516,9 @@ public class SwerveDrivetrain extends SubsystemBase {
      * @return The value of the gyroscope.
      */
     private Rotation2d getGyroscope() {
-        return Rotation2d.fromDegrees(m_gyroscope.getAngle()).times(-1);
+       // return Rotation2d.fromDegrees(m_gyroscope.getAngle()).times(-1);
+       
+       return m_gyroscope.getRotation2d().times(-1);
     }
 
     /**

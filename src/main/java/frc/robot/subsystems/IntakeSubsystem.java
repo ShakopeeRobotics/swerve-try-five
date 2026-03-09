@@ -17,14 +17,15 @@ import frc.robot.Constants;
 public class IntakeSubsystem extends SubsystemBase {
     private final SparkMax secondIntakeRollerMotor;
 
-    public static final double intakeMotorSpeed = 0.8;
+    public static final double intakeMotorSpeed = -0.8;
+    public static final double reverseIntakeMotorSpeed = 0.8;
 
     public IntakeSubsystem() {
         secondIntakeRollerMotor = new SparkMax(Constants.kSecondIntakeId, MotorType.kBrushless);
-        SparkFlexConfig config = new SparkFlexConfig();
-        config.idleMode(IdleMode.kCoast);
+        //SparkFlexConfig config = new SparkFlexConfig();
+        //config.idleMode(IdleMode.kCoast);
 
-        secondIntakeRollerMotor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        //secondIntakeRollerMotor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
         // TODO - DE: Not sure if this is needed.
         if (RobotBase.isSimulation()) {}
@@ -33,6 +34,14 @@ public class IntakeSubsystem extends SubsystemBase {
     public Command intakeCommand() {
         return this.startEnd(() -> {
             secondIntakeRollerMotor.set(intakeMotorSpeed);
+        }, () -> {
+            secondIntakeRollerMotor.set(Constants.motorOffSpeed);
+        });
+    }
+
+    public Command reverseIntakeCommand() {
+        return this.startEnd(() -> {
+            secondIntakeRollerMotor.set(reverseIntakeMotorSpeed);
         }, () -> {
             secondIntakeRollerMotor.set(Constants.motorOffSpeed);
         });

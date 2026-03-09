@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -35,6 +37,7 @@ public class RobotContainer {
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final FeederSubsystem feederSubsystem = new FeederSubsystem();
 
   private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
 
@@ -102,11 +105,17 @@ public class RobotContainer {
     
     m_joystick.button(8).toggleOnTrue(drivetrain.resetGyroscope());
     m_joystick.button(5).toggleOnTrue(intakeSubsystem.intakeCommand());
-    m_joystick.button(6).toggleOnTrue(shooterSubsystem.launchCommand());
+    m_joystick.button(4).whileTrue(intakeSubsystem.reverseIntakeCommand());
+    m_joystick.button(2).whileTrue(feederSubsystem.ejectCommand());
+
+    m_joystick.button(6).whileTrue(feederSubsystem.launchCommand());
+    m_joystick.button(1).toggleOnTrue(shooterSubsystem.activeShooterCommand());
+
     m_joystick.button(3).toggleOnTrue(shooterSubsystem.shortLaunchCommand());
     //m_joystick.axisMagnitudeGreaterThan(3, 0.01).whileTrue(m_fuel.ejectCommand());
     //m_joystick.axisMagnitudeGreaterThan(2, 0.01).whileTrue(m_climber.climbCommand());
-    m_joystick.button(4).toggleOnTrue(climberSubsystem.climbCommand());
+    m_joystick.povUp().whileTrue(climberSubsystem.climbUpCommand());
+    m_joystick.povDown().whileTrue(climberSubsystem.climbDownCommand());
   }
 
   /**

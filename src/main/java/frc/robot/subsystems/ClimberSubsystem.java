@@ -16,9 +16,18 @@ public class ClimberSubsystem extends SubsystemBase {
         climberMotor = new SparkMax(Constants.kClimberId, MotorType.kBrushless);
     }
 
-    public Command climbCommand() {
+    public Command climbUpCommand() {
         return this.startEnd(() -> {
-            climberMotor.set(.1);
+            climberMotor.set(.5);
+            System.out.println("Climbing...");
+        }, () -> {
+           climberMotor.set(0);
+           System.out.println("Stopped climbing.");
+        });
+    }
+    public Command climbDownCommand() {
+        return this.startEnd(() -> {
+            climberMotor.set(-.5);
             System.out.println("Climbing...");
         }, () -> {
            climberMotor.set(0);
