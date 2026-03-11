@@ -259,12 +259,12 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_modules[3].getPosition()
         });
 
-        m_poseEstimator.updateWithTime(Timer.getFPGATimestamp(), getGyroscope(),  new SwerveModulePosition[]{
-            m_modules[0].getPosition(),
-            m_modules[1].getPosition(),
-            m_modules[2].getPosition(),
-            m_modules[3].getPosition()
-        });
+        // m_poseEstimator.updateWithTime(Timer.getFPGATimestamp(), getGyroscope(),  new SwerveModulePosition[]{
+        //     m_modules[0].getPosition(),
+        //     m_modules[1].getPosition(),
+        //     m_modules[2].getPosition(),
+        //     m_modules[3].getPosition()
+        // });
 
         LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         
@@ -433,6 +433,7 @@ public class SwerveDrivetrain extends SubsystemBase {
                     if (Constants.kCosineScale) {
                         states[i].cosineScale(m_modules[i].getPosition().angle);
                     }
+                    states[i].optimize(states[i].angle);
                     //SmartDashboard.putNumber("")
                     m_modules[i].goToState(MetersPerSecond.of(states[i].speedMetersPerSecond), states[i].angle);
                 }
