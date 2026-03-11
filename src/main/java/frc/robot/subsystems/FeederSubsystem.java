@@ -1,12 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -15,6 +10,7 @@ import frc.robot.Constants;
 // It's easier to read in code when the class name reflects if it's a Command/Subsystem/Motor etc.
 public class FeederSubsystem extends SubsystemBase {
     private final SparkMax feederRollerMotor; // Kicker
+    private final SparkMax spindexMotor; 
 
     public static final double launchFuelFeederRollerMotorSpeed = -0.5; // -2/12
 
@@ -25,7 +21,7 @@ public class FeederSubsystem extends SubsystemBase {
     public static final double ejectFuelShortFeederRollerMotorSpeed = 1.0; // 12/12
         
     public FeederSubsystem(){
-
+        spindexMotor = new SparkMax(13, MotorType.kBrushless);
         feederRollerMotor = new SparkMax(Constants.kFeederId, MotorType.kBrushless);
     }
     public Command launchCommand() {

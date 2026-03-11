@@ -21,7 +21,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
@@ -31,10 +30,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.simulation.ADIS16470_IMUSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -91,23 +88,23 @@ public class SwerveDrivetrain extends SubsystemBase {
         new Translation2d(-Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // back right
     });
 
-    private final SwerveDriveOdometry m_odometry =
-        new SwerveDriveOdometry(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
+    private final SwerveDrivePoseEstimator m_poseEstimator =
+        new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
             m_modules[0].getPosition(),
             m_modules[1].getPosition(),
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
-        });
+        }, Constants.kRedStart);
 
     private final Field2d m_field = new Field2d();
     
     // Vision correction
-    private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
-        m_modules[0].getPosition(),
-        m_modules[1].getPosition(),
-        m_modules[2].getPosition(),
-        m_modules[3].getPosition()
-    }, Constants.kRedStart);
+    // private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
+    //     m_modules[0].getPosition(),
+    //     m_modules[1].getPosition(),
+    //     m_modules[2].getPosition(),
+    //     m_modules[3].getPosition()
+    // }, Constants.kRedStart);
     
     // Trajectory variables
     private final HolonomicDriveController m_controller = new HolonomicDriveController(
@@ -196,12 +193,12 @@ public class SwerveDrivetrain extends SubsystemBase {
 
  public SwerveDrivetrain() {
         addDashboardEntries();
-        m_odometry.resetPose(m_chooser.getSelected());
+        m_poseEstimator.resetPose(m_chooser.getSelected());
         if (RobotBase.isSimulation()) {
     
-            m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+            m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
         } else
-            m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+            m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
         m_gyroPID.enableContinuousInput(0.0, 2*Math.PI);
         this.setDefaultCommand(this.run(
             () -> {
@@ -216,7 +213,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 
     public void addDashboardEntries() {
         SmartDashboard.putData(m_field);
-      // /*  SmartDashboard.putData*/SmartDashboard.putNumber("Gyroscope", m_gyroscope.getYaw());
+        SmartDashboard.putNumber("Gyroscope", m_gyroscope.getYaw().getValueAsDouble());
         m_chooser.setDefaultOption("Blue Start", Constants.kBlueStart);
         m_chooser.addOption("Red Start", Constants.kRedStart);
         m_chooser.addOption("Zero", Constants.kZero);
@@ -255,14 +252,13 @@ public class SwerveDrivetrain extends SubsystemBase {
             module.updatePosition();
         }
 
-        m_odometry.update(getGyroscope(), new SwerveModulePosition[]{
+        m_poseEstimator.update(getGyroscope(), new SwerveModulePosition[]{
             m_modules[0].getPosition(),
             m_modules[1].getPosition(),
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
 
-        //m_poseEstimator.addVisionMeasurement(m_vision.getBotPose(), Timer.getFPGATimestamp());
         m_poseEstimator.updateWithTime(Timer.getFPGATimestamp(), getGyroscope(),  new SwerveModulePosition[]{
             m_modules[0].getPosition(),
             m_modules[1].getPosition(),
@@ -281,17 +277,17 @@ public class SwerveDrivetrain extends SubsystemBase {
         }
 
         if (m_chooser.getSelected() != m_lastChoice) {
-            m_odometry.resetPose(m_chooser.getSelected());
+            m_poseEstimator.resetPose(m_chooser.getSelected());
             m_lastChoice = m_chooser.getSelected();
 
             if (RobotBase.isSimulation()) {
              //   m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees()); 
-             m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+             m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
             } 
             } 
             else {
               //  m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
-               m_gyroscope.setYaw(m_odometry.getPoseMeters().getRotation().getDegrees());
+               m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
             }     
         }
         //m_field.setRobotPose(m_odometry.getPoseMeters());
@@ -452,7 +448,7 @@ public class SwerveDrivetrain extends SubsystemBase {
                 m_trajectoryTimer.start();
             },
             () -> {
-                ChassisSpeeds speeds = m_controller.calculate(m_odometry.getPoseMeters(), m_currentTrajectory.sample(m_trajectoryTimer.get()), m_currentTrajectory.sample(m_currentTrajectory.getTotalTimeSeconds()).poseMeters.getRotation());
+                ChassisSpeeds speeds = m_controller.calculate(m_poseEstimator.getEstimatedPosition(), m_currentTrajectory.sample(m_trajectoryTimer.get()), m_currentTrajectory.sample(m_currentTrajectory.getTotalTimeSeconds()).poseMeters.getRotation());
                 // NOTE: maybe make this cleaner
                 this.driveCommand(
                     () -> speeds.vxMetersPerSecond,
@@ -468,7 +464,7 @@ public class SwerveDrivetrain extends SubsystemBase {
      */
     public Command goToPosCommand(Pose2d pose) {
         return this.followTrajectoryCommand(
-            () -> TrajectoryGenerator.generateTrajectory(m_odometry.getPoseMeters(), List.of(), pose, new TrajectoryConfig(Constants.kMaxVelocity, Constants.kMaxAcceleration))
+            () -> TrajectoryGenerator.generateTrajectory(m_poseEstimator.getEstimatedPosition(), List.of(), pose, new TrajectoryConfig(Constants.kMaxVelocity, Constants.kMaxAcceleration))
         );
     }
 
