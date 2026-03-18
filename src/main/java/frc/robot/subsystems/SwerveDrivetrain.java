@@ -364,7 +364,7 @@ public class SwerveDrivetrain extends SubsystemBase {
     }
 
     public Command resetGyroscope() {
-        return this.runOnce(() -> {m_gyroscope.reset();});
+        return this.runOnce(() -> {m_gyroscope.reset(); m_gyroscope.getYaw().getValueAsDouble();});
     }
 
     /**
