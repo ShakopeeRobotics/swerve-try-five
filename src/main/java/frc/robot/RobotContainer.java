@@ -10,6 +10,7 @@ import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LightSubsystem;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 
@@ -30,11 +31,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
-  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  private final ClimberSubsystem climberSubsystem = new ClimberSubsystem();
-  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-  private final FeederSubsystem feederSubsystem = new FeederSubsystem();
+  private final SwerveDrivetrain m_drivetrain = new SwerveDrivetrain();
+  private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
+  private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+  private final FeederSubsystem m_feederSubsystem = new FeederSubsystem();
+  private final LightSubsystem m_lightSubsystem = new LightSubsystem();
 
   private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
 
@@ -44,19 +46,19 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    SmartDashboard.putData("Swerve Drive", drivetrain);
+    SmartDashboard.putData("Swerve Drive", m_drivetrain);
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
-    m_autoChooser.setDefaultOption("Win The Game", Autos.doNothing(drivetrain));
-    m_autoChooser.addOption("Lose The Game", Autos.goBackAndScore(drivetrain, shooterSubsystem));
-    m_autoChooser.addOption("Go Forward", Autos.driveForward(drivetrain, 5.0));
-    m_autoChooser.addOption("Go Forward Longer", Autos.driveForward(drivetrain, 50.0));
-    m_autoChooser.addOption("Spin In Place", Autos.spinInPlace(drivetrain, 50.0));
-    m_autoChooser.addOption("Go Forward And Spin", Autos.driveThenTurn(drivetrain));
-    m_autoChooser.addOption("Go To Blue Start", Autos.goToBlueStart(drivetrain));
+    m_autoChooser.setDefaultOption("Win The Game", Autos.doNothing(m_drivetrain));
+    m_autoChooser.addOption("Lose The Game", Autos.goBackAndScore(m_drivetrain, m_shooterSubsystem));
+    m_autoChooser.addOption("Go Forward", Autos.driveForward(m_drivetrain, 5.0));
+    m_autoChooser.addOption("Go Forward Longer", Autos.driveForward(m_drivetrain, 50.0));
+    m_autoChooser.addOption("Spin In Place", Autos.spinInPlace(m_drivetrain, 50.0));
+    m_autoChooser.addOption("Go Forward And Spin", Autos.driveThenTurn(m_drivetrain));
+    m_autoChooser.addOption("Go To Blue Start", Autos.goToBlueStart(m_drivetrain));
     //m_autoChooser.addOption("Go Forward And Go Right", Autos.driveThenRight(m_drivetrain));
-    m_autoChooser.addOption("Go To All April Tags", Autos.goToAllAprilTags(drivetrain));
-    m_autoChooser.addOption("Drive System Id", Autos.driveSystemId(drivetrain));
-    m_autoChooser.addOption("Steer System Id", Autos.steerSystemId(drivetrain));
+    m_autoChooser.addOption("Go To All April Tags", Autos.goToAllAprilTags(m_drivetrain));
+    m_autoChooser.addOption("Drive System Id", Autos.driveSystemId(m_drivetrain));
+    m_autoChooser.addOption("Steer System Id", Autos.steerSystemId(m_drivetrain));
     
     SmartDashboard.putData("Autonomous Chooser", m_autoChooser);
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -78,7 +80,7 @@ public class RobotContainer {
         .or(m_joystick.axisMagnitudeGreaterThan(m_joystick.getZChannel(), 0.01))
         .or(m_joystick.axisMagnitudeGreaterThan(Constants.kAxisA, 0.01))
         .whileTrue(
-          drivetrain.driveHeadingCommand(
+          m_drivetrain.driveHeadingCommand(
           () -> Math.abs(m_joystick.getY()) < Constants.kDeadzone ? 0.0 : -m_joystick.getY() * Constants.kMaxVelocity,
           () -> Math.abs(m_joystick.getX()) < Constants.kDeadzone ? 0.0 : -m_joystick.getX() * Constants.kMaxVelocity,
           () -> DegreesPerSecond.of(Constants.kMaxInPlaceAngularVelocity * (Math.abs(m_joystick.getZ()) < Constants.kDeadzone ? 0.0 : m_joystick.getZ())))
@@ -93,26 +95,33 @@ public class RobotContainer {
         .or(m_joystick.axisMagnitudeGreaterThan(m_joystick.getYChannel(), 0.01)
         .or(m_joystick.axisMagnitudeGreaterThan(m_joystick.getZChannel(), 0.01)))
         .whileTrue(
-          drivetrain.driveCommand(
+          m_drivetrain.driveCommand(
             () -> Math.abs(m_joystick.getY()) < Constants.kDeadzone ? 0.0 : m_joystick.getY() * Constants.kMaxVelocity,
             () -> Math.abs(m_joystick.getX()) < Constants.kDeadzone ? 0.0 : m_joystick.getX() * Constants.kMaxVelocity,
             () -> DegreesPerSecond.of(Constants.kMaxInPlaceAngularVelocity * (Math.abs(m_joystick.getZ()) < Constants.kDeadzone ? 0.0 : m_joystick.getZ())))
           .withName("Joystick Controlling Robot"));
     }
     
-    m_joystick.button(8).toggleOnTrue(drivetrain.resetGyroscope());
-    m_joystick.button(5).toggleOnTrue(intakeSubsystem.intakeCommand());
-    m_joystick.button(4).whileTrue(intakeSubsystem.reverseIntakeCommand());
-    m_joystick.button(2).whileTrue(feederSubsystem.ejectCommand());
+    m_joystick.button(8).toggleOnTrue(m_drivetrain.resetGyroscope());
 
-    m_joystick.button(6).whileTrue(feederSubsystem.launchCommand());
-    m_joystick.button(1).toggleOnTrue(shooterSubsystem.activeShooterCommand());
+    m_joystick.button(5).toggleOnTrue(m_intakeSubsystem.intakeCommand());
+    m_joystick.button(5).toggleOnTrue(m_lightSubsystem.solidGreen());
 
-    m_joystick.button(3).toggleOnTrue(shooterSubsystem.shortLaunchCommand());
+    m_joystick.button(4).whileTrue(m_intakeSubsystem.reverseIntakeCommand());
+    m_joystick.button(2).whileTrue(m_feederSubsystem.ejectCommand());
+
+    m_joystick.button(6).whileTrue(m_feederSubsystem.launchCommand());
+    m_joystick.button(6).whileTrue(m_lightSubsystem.strobeRed());
+
+    m_joystick.button(1).toggleOnTrue(m_shooterSubsystem.activeShooterCommand());
+    m_joystick.button(1).toggleOnTrue(m_lightSubsystem.solidRed());
+
+    m_joystick.button(3).toggleOnTrue(m_shooterSubsystem.shortLaunchCommand());
+    m_joystick.button(3).toggleOnTrue(m_lightSubsystem.solidRed());
     //m_joystick.axisMagnitudeGreaterThan(3, 0.01).whileTrue(m_fuel.ejectCommand());
     //m_joystick.axisMagnitudeGreaterThan(2, 0.01).whileTrue(m_climber.climbCommand());
-    m_joystick.povUp().whileTrue(climberSubsystem.climbUpCommand());
-    m_joystick.povDown().whileTrue(climberSubsystem.climbDownCommand());
+    m_joystick.povUp().whileTrue(m_climberSubsystem.climbUpCommand());
+    m_joystick.povDown().whileTrue(m_climberSubsystem.climbDownCommand());
   }
 
   /**
@@ -123,7 +132,7 @@ public class RobotContainer {
   }
 
   public SwerveDrivetrain getDrivetrain() {
-    return drivetrain;
+    return m_drivetrain;
   }
 
   // TODO - DE:
@@ -138,7 +147,7 @@ public class RobotContainer {
    * @return The currently simulated voltage of the entire robot
    */
   public Voltage getCurrentDraw() {
-    return drivetrain.getCurrentDraw();
+    return m_drivetrain.getCurrentDraw();
   }
 
   public CommandJoystick getJoystick() {
