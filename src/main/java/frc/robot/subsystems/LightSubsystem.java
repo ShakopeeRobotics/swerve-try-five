@@ -17,7 +17,7 @@ public class LightSubsystem extends SubsystemBase {
      * @return The relevant command.
      */
     public Command doNothing() {
-        return this.run(() -> m_ledStrip.set(0));
+        return this.run(() -> m_ledStrip.set(0.95));
     }
 
     /**
@@ -42,5 +42,13 @@ public class LightSubsystem extends SubsystemBase {
      */
     public Command solidGreen() {
         return this.run(() -> m_ledStrip.set(0.77));
+    }
+
+    /**
+     * Sets the LED strip to be "Color Waves, Rainbow Palette".
+     * @return The relevant command.
+     */
+    public Command funColors() {
+        return this.run(() -> m_ledStrip.set(-0.75));
     }
 }

@@ -5,7 +5,6 @@
 package frc.robot;
 
 import frc.robot.commands.Autos;
-import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDrivetrain;
@@ -33,7 +32,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 public class RobotContainer {
   private final SwerveDrivetrain m_drivetrain = new SwerveDrivetrain();
   private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-  private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final FeederSubsystem m_feederSubsystem = new FeederSubsystem();
   private final LightSubsystem m_lightSubsystem = new LightSubsystem();
@@ -108,7 +106,7 @@ public class RobotContainer {
     m_joystick.button(5).toggleOnTrue(m_lightSubsystem.solidGreen());
 
     m_joystick.button(4).whileTrue(m_intakeSubsystem.reverseIntakeCommand());
-    
+
     m_joystick.button(2).whileTrue(m_feederSubsystem.ejectCommand());
 
     m_joystick.button(6).whileTrue(m_feederSubsystem.launchCommand());
@@ -119,17 +117,14 @@ public class RobotContainer {
 
     m_joystick.button(3).toggleOnTrue(m_shooterSubsystem.shortLaunchCommand());
     m_joystick.button(3).toggleOnTrue(m_lightSubsystem.solidRed());
-    //m_joystick.axisMagnitudeGreaterThan(3, 0.01).whileTrue(m_fuel.ejectCommand());
-    //m_joystick.axisMagnitudeGreaterThan(2, 0.01).whileTrue(m_climber.climbCommand());
-    m_joystick.povUp().whileTrue(m_climberSubsystem.climbUpCommand());
-    m_joystick.povDown().whileTrue(m_climberSubsystem.climbDownCommand());
   }
 
   /**
    * @return The command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return m_autoChooser.getSelected();
+    return m_autoChooser.getSelected()
+      .alongWith(m_lightSubsystem.funColors());
   }
 
   public SwerveDrivetrain getDrivetrain() {
