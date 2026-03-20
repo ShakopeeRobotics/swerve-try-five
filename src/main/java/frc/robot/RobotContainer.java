@@ -108,6 +108,7 @@ public class RobotContainer {
     m_joystick.button(5).toggleOnTrue(m_lightSubsystem.solidGreen());
 
     m_joystick.button(4).whileTrue(m_intakeSubsystem.reverseIntakeCommand());
+    
     m_joystick.button(2).whileTrue(m_feederSubsystem.ejectCommand());
 
     m_joystick.button(6).whileTrue(m_feederSubsystem.launchCommand());
