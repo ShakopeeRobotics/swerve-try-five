@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -23,12 +25,16 @@ public class FeederSubsystem extends SubsystemBase {
     public FeederSubsystem(){
         spindexMotor = new SparkMax(13, MotorType.kBrushless);
         feederRollerMotor = new SparkMax(Constants.kFeederId, MotorType.kBrushless);
+
+        SmartDashboard.putBoolean("Feeder", false);
     }
     public Command launchCommand() {
-        return this.run(() -> {
+        return this.startEnd(() -> {
             feederRollerMotor.set(launchFuelFeederRollerMotorSpeed);
-        }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
+            SmartDashboard.putBoolean("Feeder", true);
+        }, () -> {
             feederRollerMotor.set(Constants.motorOffSpeed);
+            SmartDashboard.putBoolean("Feeder", false);
         });
     }
     public Command ejectCommand() {

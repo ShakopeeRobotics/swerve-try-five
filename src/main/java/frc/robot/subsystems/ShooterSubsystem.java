@@ -39,26 +39,29 @@ public class ShooterSubsystem extends SubsystemBase {
         // TODO - DE: Not sure if this is needed.
         SmartDashboard.putData("Test Shooter", testCommand());
         if (RobotBase.isSimulation()) {}
+
+        SmartDashboard.putBoolean("Shooter", false);
     }
 
 
 
     public Command activeShooterCommand() {
-        return this.run(() -> {
+        return this.startEnd(() -> {
             intakeLauncherRollerMotor.set(launchFuelIntakeLauncherMotorSpeed);
-        }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
+            SmartDashboard.putBoolean("Shooter", true);
+        }, () -> {
             intakeLauncherRollerMotor.set(Constants.motorOffSpeed);
+            SmartDashboard.putBoolean("Shooter", false);
         });
     }
 
     public Command shortLaunchCommand() {
-        return this.run(() -> {
+        return this.startEnd(() -> {
             intakeLauncherRollerMotor.set(launchFuelShortIntakeLauncherMotorSpeed);
-        //}).withTimeout(1).andThen(() -> {
-           // intakeLauncherRoller.setVoltage(10.6*0.8);
-           // feederRoller.setVoltage(9*0.6);
-        }).andThen(this.run(()->{}).repeatedly()).finallyDo(() -> {
+            SmartDashboard.putBoolean("Shooter", true);
+        }, () -> {
             intakeLauncherRollerMotor.set(Constants.motorOffSpeed);
+            SmartDashboard.putBoolean("Shooter", false);
         });
     }
 

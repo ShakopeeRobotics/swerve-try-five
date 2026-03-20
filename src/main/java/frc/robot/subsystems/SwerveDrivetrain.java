@@ -99,12 +99,6 @@ public class SwerveDrivetrain extends SubsystemBase {
     private final Field2d m_field = new Field2d();
     
     // Vision correction
-    // private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
-    //     m_modules[0].getPosition(),
-    //     m_modules[1].getPosition(),
-    //     m_modules[2].getPosition(),
-    //     m_modules[3].getPosition()
-    // }, Constants.kRedStart);
     
     // Trajectory variables
     private final HolonomicDriveController m_controller = new HolonomicDriveController(
@@ -162,7 +156,7 @@ public class SwerveDrivetrain extends SubsystemBase {
        Constants.kDGyro);
     // Simulation variables
 
-     private final Pigeon2 m_gyroscope = new Pigeon2(20);
+    private final Pigeon2 m_gyroscope = new Pigeon2(20);
    
     //private ADIS16470_IMUSim m_gyroSim;
 
@@ -191,14 +185,10 @@ public class SwerveDrivetrain extends SubsystemBase {
 // Added to work with Piegon
    
 
- public SwerveDrivetrain() {
+    public SwerveDrivetrain() {
         addDashboardEntries();
         m_poseEstimator.resetPose(m_chooser.getSelected());
-        if (RobotBase.isSimulation()) {
-    
-            m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
-        } else
-            m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
+        m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
         m_gyroPID.enableContinuousInput(0.0, 2*Math.PI);
         this.setDefaultCommand(this.run(
             () -> {
@@ -280,19 +270,11 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_poseEstimator.resetPose(m_chooser.getSelected());
             m_lastChoice = m_chooser.getSelected();
 
-            if (RobotBase.isSimulation()) {
-             //   m_gyroSim.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees()); 
-             m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
-            } 
-            } 
-            else {
-              //  m_gyroscope.setGyroAngleZ(m_odometry.getPoseMeters().getRotation().getDegrees());
-               m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
-            }     
+            m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees()); 
         }
-        //m_field.setRobotPose(m_odometry.getPoseMeters());
+        m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
          //m_field.setRobotPose(m_od)
-    
+    }
 
     @Override
     public void simulationPeriodic() {
@@ -313,7 +295,7 @@ public class SwerveDrivetrain extends SubsystemBase {
         };
        // m_gyroSim.setGyroAngleZ(Rotation2d.fromDegrees(m_gyroscope.getAngle()).plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(states).omegaRadiansPerSecond).times(0.02)).getDegrees());
        
-        //m_gyroscope.setGyroAngle(Constants.kYawAxis, m_heading.getDegrees());
+        m_gyroscope.setYaw(getGyroscope().plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(states).omegaRadiansPerSecond).times(0.02)).getDegrees());
     }
 
     // TODO - DE: We shouldn't need to reset encoders.

@@ -24,10 +24,10 @@ public final class Constants {
     // add on bumpers
     public static final double kRobotDepth = kRobotTrackDepth + Units.inchesToMeters(3);
 
-    // TODO: use sysid for these
-    public static final double kVSteer = 2.0;
-    public static final double kASteer = 0.1;
-    public static final double kVDrive = 2.0;
+    // TODO: use sysid for these. note that these are simulation constants only, and are also not accurate because we dont know what they are
+    public static final double kVSteer = 0.1;
+    public static final double kASteer = 0.05;
+    public static final double kVDrive = 0.4;
     public static final double kADrive = 0.1;
 
     // note: this doesn't mean anything right now except for joystick inputs
@@ -99,10 +99,13 @@ public final class Constants {
 
     // Starting poses
     public static final Pose2d kZero = Pose2d.kZero;
-    public static final Pose2d kRedStart = new Pose2d(
-        Units.inchesToMeters(297.5+96.0), Units.inchesToMeters(158.5/2), Rotation2d.k180deg);
-    public static final Pose2d kBlueStart = new Pose2d(
-        Units.inchesToMeters(297.5), Units.inchesToMeters(158.5+146.5/2), Rotation2d.kZero);
+    // public static final Pose2d kRedStart = new Pose2d(
+    //     Units.inchesToMeters(297.5+96.0), Units.inchesToMeters(158.5/2), Rotation2d.k180deg);
+    // public static final Pose2d kBlueStart = new Pose2d(
+    //     Units.inchesToMeters(297.5), Units.inchesToMeters(158.5+146.5/2), Rotation2d.kZero);
+    // TODO: either figure out start positions or scrap the start position system entirely
+    public static final Pose2d kRedStart = Pose2d.kZero;
+    public static final Pose2d kBlueStart = Pose2d.kZero;
     // April tag business
     public static final AprilTagFieldLayout kAprilTags = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
     public static final int kNumTags = kAprilTags.getTags().size();
