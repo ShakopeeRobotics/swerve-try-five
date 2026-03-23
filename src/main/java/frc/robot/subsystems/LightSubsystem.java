@@ -9,15 +9,15 @@ public class LightSubsystem extends SubsystemBase {
     private final Spark m_ledStrip = new Spark(0);
     
     public LightSubsystem() {
-        setDefaultCommand(doNothing());
+        setDefaultCommand(idleLights());
     }
 
     /**
-     * Turns the LED strip off.
+     * Sets the lights to "Rainbow with Glitter".
      * @return The relevant command.
      */
-    public Command doNothing() {
-        return this.run(() -> m_ledStrip.set(0.95));
+    public Command idleLights() {
+        return this.run(() -> m_ledStrip.set(0.51 ));
     }
 
     /**
@@ -45,10 +45,10 @@ public class LightSubsystem extends SubsystemBase {
     }
 
     /**
-     * Sets the LED strip to be "Color Waves, Rainbow Palette".
+     * Sets the LED strip to be "Neats per Minute, Rainbow Palette".
      * @return The relevant command.
      */
     public Command funColors() {
-        return this.run(() -> m_ledStrip.set(-0.75));
+        return this.run(() -> m_ledStrip.set(-0.69));
     }
 }

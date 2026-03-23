@@ -11,6 +11,10 @@ import frc.robot.subsystems.SwerveDrivetrain;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -32,7 +36,13 @@ public final class Autos {
   /*
    * 
    */
-  public static Command followPath(SwerveDrivetrain drivetrain) {
+  public static Command goWithinHubDistance(SwerveDrivetrain drivetrain, Distance distance) {
+    //return doNothing(drivetrain);
+    Alliance alliance = DriverStation.getAlliance().isPresent() ? DriverStation.getAlliance().get() : Alliance.Red;
+    final Pose2d hub = Constants.kAprilTags.getTagPose(10 + (alliance == Alliance.Red ? 0:16)).get().toPose2d();
+    final Pose2d robot = drivetrain.getPose();
+    // return drivetrain.goToPosCommand(
+    //   robot.getTranslation().minus(hub.getTranslation()).times());
     return doNothing(drivetrain);
   }
   

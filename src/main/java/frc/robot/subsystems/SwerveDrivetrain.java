@@ -501,6 +501,13 @@ public class SwerveDrivetrain extends SubsystemBase {
     }
 
     /**
+     * @return The pose of the robot.
+     */
+    public Pose2d getPose() {
+        return m_poseEstimator.getEstimatedPosition();
+    }
+
+    /**
      * @return The current voltage drawn from the swerve drivetrain.
      */
     public Voltage getCurrentDraw() {
