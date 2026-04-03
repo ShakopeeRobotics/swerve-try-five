@@ -25,7 +25,7 @@ public final class Constants {
     public static final double kRobotDepth = kRobotTrackDepth + Units.inchesToMeters(3);
 
     // TODO: use sysid for these. note that these are simulation constants only, and are also not accurate because we dont know what they are
-    public static final double kVSteer = 0.1;
+    public static final double kVSteer = 0.01;
     public static final double kASteer = 0.05;
     public static final double kVDrive = 0.4;
     public static final double kADrive = 0.1;

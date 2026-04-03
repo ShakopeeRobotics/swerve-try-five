@@ -13,6 +13,9 @@ import frc.robot.subsystems.LightSubsystem;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.units.measure.Voltage;
@@ -57,6 +60,10 @@ public class RobotContainer {
     m_autoChooser.addOption("Go To All April Tags", Autos.goToAllAprilTags(m_drivetrain));
     m_autoChooser.addOption("Drive System Id", Autos.driveSystemId(m_drivetrain));
     m_autoChooser.addOption("Steer System Id", Autos.steerSystemId(m_drivetrain));
+    // PathPlanner...
+    for (final String name : AutoBuilder.getAllAutoNames()) {
+      m_autoChooser.addOption(name, new PathPlannerAuto(name));
+    }
     
     SmartDashboard.putData("Autonomous Chooser", m_autoChooser);
     DriverStation.silenceJoystickConnectionWarning(true);

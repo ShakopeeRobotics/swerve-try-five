@@ -1,11 +1,13 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -23,6 +25,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
@@ -30,8 +33,9 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -49,6 +53,11 @@ import frc.robot.LimelightHelpers.LimelightTarget_Fiducial;
 //4663 added import
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 public class SwerveDrivetrain extends SubsystemBase {
     // Odometry positions
@@ -81,12 +90,13 @@ public class SwerveDrivetrain extends SubsystemBase {
     // bl = - / +
     // br = - / -
 
-    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(new Translation2d[]{
+    private final Translation2d[] offsets = new Translation2d[]{
         new Translation2d(Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // front left
         new Translation2d(Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // front right
         new Translation2d(-Constants.kRobotTrackDepth / 2, Constants.kRobotTrackWidth / 2), // back left
         new Translation2d(-Constants.kRobotTrackDepth / 2, -Constants.kRobotTrackWidth / 2), // back right
-    });
+    };
+    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(offsets);
 
     private final SwerveDrivePoseEstimator m_poseEstimator =
         new SwerveDrivePoseEstimator(m_kinematics, Rotation2d.kZero, new SwerveModulePosition[]{
@@ -98,7 +108,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 
     private final Field2d m_field = new Field2d();
     
-    // Vision correction
     
     // Trajectory variables
     private final HolonomicDriveController m_controller = new HolonomicDriveController(
@@ -106,6 +115,11 @@ public class SwerveDrivetrain extends SubsystemBase {
         new ProfiledPIDController(
             Constants.kPGyro, 0.0, 0.0,
             new Constraints(Constants.kMaxAngularVelocity, Constants.kMaxAngularAcceleration)));
+    // TODO: Currently, PathPlanner wants a seperate type of holonomic controller. So figure out how to tune it, and perhaps deprecate the old one above (which is still in use).
+    private final PPHolonomicDriveController m_PPcontroller = new PPHolonomicDriveController(
+        new PIDConstants(0.0, 0.0, 0.0),
+        new PIDConstants(0.0, 0.0, 0.0)
+    );
     private Trajectory m_currentTrajectory;
     private Timer m_trajectoryTimer = new Timer();
 
@@ -187,7 +201,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 
     public SwerveDrivetrain() {
         addDashboardEntries();
-        m_poseEstimator.resetPose(m_chooser.getSelected());
+        // Do we really need the code below? Also, the chooser still uses values from Reefscape. Better to just use Limelight or at least assign new values.
+        resetPose(m_chooser.getSelected());
         m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
         m_gyroPID.enableContinuousInput(0.0, 2*Math.PI);
         this.setDefaultCommand(this.run(
@@ -195,6 +210,34 @@ public class SwerveDrivetrain extends SubsystemBase {
                 for (final SwerveModule module : m_modules) module.goToState(MetersPerSecond.zero(), Rotation2d.kZero);
             }
         ).withName("Default Swerve Command"));
+
+        // Everything below this in the initalizer is PathPlanner stuff.
+        RobotConfig config;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            // default configuration. I don't know what this does yet.
+            config = new RobotConfig(60.0, // estimation of mass
+                (1/6)*60*Constants.kRobotTrackWidth*Constants.kRobotTrackWidth, // estimation of MOI given estimated mass and assumption that robot is a uniform density square plate
+                new ModuleConfig(Constants.kWheelRadius.in(Meters), Constants.kMaxVelocity,
+                    // estimating COF to be 0.9, safely setting current limit as 70.
+                    0.9, DCMotor.getNEO(1), 70, 4),
+                offsets);
+            e.printStackTrace();
+        }
+        AutoBuilder.configure(this::getPose, this::resetPose, this::getCurrentChassisSpeeds,
+            (speeds, ffs) -> {}, // TODO: should take in ChassisSpeeds and a set of feed forwards to drive robot
+            m_PPcontroller,
+            config,
+            () -> {
+              Optional<Alliance> alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this
+        );
     }
 
 
@@ -267,7 +310,7 @@ public class SwerveDrivetrain extends SubsystemBase {
         }
 
         if (m_chooser.getSelected() != m_lastChoice) {
-            m_poseEstimator.resetPose(m_chooser.getSelected());
+            resetPose(m_chooser.getSelected());
             m_lastChoice = m_chooser.getSelected();
 
             m_gyroscope.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees()); 
@@ -505,6 +548,34 @@ public class SwerveDrivetrain extends SubsystemBase {
      */
     public Pose2d getPose() {
         return m_poseEstimator.getEstimatedPosition();
+    }
+
+    /**
+     * Sets the current pose.
+     */
+    private void resetPose(Pose2d newPose) {
+        m_poseEstimator.resetPose(newPose);
+    }
+
+    /**
+     * Currently only used by PathPlanner.
+     * @return The ChassisSpeeds object corresponding to the current state of the robot.
+     */
+    private ChassisSpeeds getCurrentChassisSpeeds() {
+        return m_kinematics.toChassisSpeeds(new SwerveModuleState[]{
+            new SwerveModuleState(
+                m_modules[0].getVelocity(),
+                m_modules[0].getSteerAngle()),
+            new SwerveModuleState(
+                m_modules[1].getVelocity(),
+                m_modules[1].getSteerAngle()),
+            new SwerveModuleState(
+                m_modules[2].getVelocity(),
+                m_modules[2].getSteerAngle()),
+            new SwerveModuleState(
+                m_modules[3].getVelocity(),
+                m_modules[3].getSteerAngle())
+        });
     }
 
     /**
