@@ -37,6 +37,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public Command reverseIntakeCommand() {
         return this.startEnd(() -> {
+            System.out.println("test");
             secondIntakeRollerMotor.set(reverseIntakeMotorSpeed);
         }, () -> {
             secondIntakeRollerMotor.set(Constants.motorOffSpeed);

@@ -67,7 +67,11 @@ public class RobotContainer {
     
     SmartDashboard.putData("Autonomous Chooser", m_autoChooser);
     DriverStation.silenceJoystickConnectionWarning(true);
-    CameraServer.startAutomaticCapture();
+    try {
+      CameraServer.startAutomaticCapture();
+    } catch (Exception e) {
+      // silent catch
+    }
     configureBindings();
   }
 

@@ -35,8 +35,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public ShooterSubsystem() {
         intakeLauncherRollerMotor = new SparkMax(Constants.kLauncherId, MotorType.kBrushless);
        
-        configureMotor(intakeLauncherRollerMotor, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, false);
-        // TODO - DE: Not sure if this is needed.
+        configureMotor(intakeLauncherRollerMotor, 0.0, 0.0, 0.0, 0.01, 1.0, 1.0, 1.0, false);
         SmartDashboard.putData("Test Shooter", testCommand());
         if (RobotBase.isSimulation()) {}
 

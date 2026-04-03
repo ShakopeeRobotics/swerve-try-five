@@ -45,20 +45,20 @@ public final class Constants {
     public static final Distance kWheelCircum = kWheelRadius.times(2*Math.PI);
 
     // CAN IDs
-    public static final int kFRDriveId = 7;//2;
-    public static final int kFLDriveId = 4;//5;
-    public static final int kBRDriveId = 5;//4;
-    public static final int kBLDriveId = 2;//7;
+    public static final int kFRDriveId = 4;//7;
+    public static final int kFLDriveId = 7;//4;
+    public static final int kBRDriveId = 2;//5;
+    public static final int kBLDriveId = 5;//2;
 
-    public static final int kFRSteerId = 8;//1;
-    public static final int kFLSteerId = 3;//6;
-    public static final int kBRSteerId = 6;//3;
-    public static final int kBLSteerId = 1;//8;
+    public static final int kFRSteerId = 3;//8;
+    public static final int kFLSteerId = 8;//3;
+    public static final int kBRSteerId = 1;//6;
+    public static final int kBLSteerId = 6;//1;
 
     public static final int kFeederId = 9;
     public static final int kLauncherId = 10;
     public static final int kSecondIntakeId = 11;
-    public static final int kClimberId = 12;
+    public static final int kSpindexId = 12;
 
     public static final int kFLEncoderId = 13;
     public static final int kFREncoderId = 14;
@@ -77,8 +77,6 @@ public final class Constants {
 
 
     public static final double kBitMoreThanHalf = 0.55;
-
-    public static final int[] kEncoders = { 1, 2, 3, 4 };
     
     public static final boolean kCosineScale = true;
 
