@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.PersistMode;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
@@ -136,7 +137,9 @@ public class SwerveModule implements Sendable {
         config.alternateEncoder
             .positionConversionFactor(posFactor)
             .velocityConversionFactor(velFactor);
-        motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        if (motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters) != REVLibError.kOk) {
+            System.err.println("Failed to push configuration to the motor controller!");
+        };
     }
 
     // NOTE: As we are switching to the CANCoders, the hope is that these functions won't be needed.
@@ -287,6 +290,12 @@ public class SwerveModule implements Sendable {
         m_turnMotor.getClosedLoopController().setSetpoint(
             steer.getRotations(), ControlType.kPosition);
         m_driveMotor.getClosedLoopController().setSetpoint(drive.in(MetersPerSecond), ControlType.kVelocity);
+        if (swerveModNum == 1) {
+            System.out.println(m_driveMotor.getClosedLoopController().getSetpoint());
+            System.out.println(m_driveMotor.getAppliedOutput());
+            System.out.println(drive.in(MetersPerSecond));
+            System.out.println();
+        }
     }
 
     public void simulationPeriodic() {
