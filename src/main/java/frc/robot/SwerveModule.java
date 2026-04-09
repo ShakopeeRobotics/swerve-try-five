@@ -290,12 +290,6 @@ public class SwerveModule implements Sendable {
         m_turnMotor.getClosedLoopController().setSetpoint(
             steer.getRotations(), ControlType.kPosition);
         m_driveMotor.getClosedLoopController().setSetpoint(drive.in(MetersPerSecond), ControlType.kVelocity);
-        if (swerveModNum == 1) {
-            System.out.println(m_driveMotor.getClosedLoopController().getSetpoint());
-            System.out.println(m_driveMotor.getAppliedOutput());
-            System.out.println(drive.in(MetersPerSecond));
-            System.out.println();
-        }
     }
 
     public void simulationPeriodic() {

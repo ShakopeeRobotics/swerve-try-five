@@ -60,10 +60,10 @@ public final class Constants {
     public static final int kSecondIntakeId = 11;
     public static final int kSpindexId = 12;
 
-    public static final int kFLEncoderId = 13;
-    public static final int kFREncoderId = 14;
-    public static final int kBLEncoderId = 15;
-    public static final int kBREncoderId = 16;
+    public static final int kFLEncoderId = 14;//13;
+    public static final int kFREncoderId = 13;//14;
+    public static final int kBLEncoderId = 16;//15;
+    public static final int kBREncoderId = 15;//16;
 
     public static final boolean kFLTurnInverted = true;
     public static final boolean kFRTurnInverted = true;

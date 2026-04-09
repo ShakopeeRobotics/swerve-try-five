@@ -94,12 +94,6 @@ public class Robot extends TimedRobot {
     // m_robotContainer.getResetEncodersCommand().schedule();
     
     if (m_autoCommand != null) {
-    // TODO - DE:
-    // m_autoCommand.schedule(); is deprecated and shouldn't be used.
-    // Use CommandScheduler.getInstance().schedule(m_autoCommand); instead.
-
-    // m_autoCommand.schedule();
-
       CommandScheduler.getInstance().schedule(m_autoCommand);
     }
   }
@@ -117,12 +111,6 @@ public class Robot extends TimedRobot {
     // m_robotContainer.getResetEncodersCommand().schedule();
 
     if (m_autoCommand != null) {
-      // TODO - DE:
-      // Although m_autoCommand.cancel(); is not deprecated yet, we should use:
-      // CommandScheduler.getInstance().cancel(m_autoCommand); for consistency.
-      
-      // m_autoCommand.cancel();
-      
       CommandScheduler.getInstance().cancel(m_autoCommand);
     }
   }

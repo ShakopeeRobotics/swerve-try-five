@@ -258,10 +258,6 @@ public class SwerveDrivetrain extends SubsystemBase {
         for (int i = 1; i <= Constants.kNumTags; ++i) {
             SmartDashboard.putData(String.format("Go To AprilTag %d", i), this.goToAprilTag(i));
         }
-
-        // TODO - DE: We shouldn't be resetting the encoders.
-        // SmartDashboard.putData("Reset All Encoders", this.resetAllEncoders());
-        // SmartDashboard.putData("Reset All Encoders v2", this.resetEncoders());
     }
 
     @Override
@@ -291,13 +287,6 @@ public class SwerveDrivetrain extends SubsystemBase {
             m_modules[2].getPosition(),
             m_modules[3].getPosition()
         });
-
-        // m_poseEstimator.updateWithTime(Timer.getFPGATimestamp(), getGyroscope(),  new SwerveModulePosition[]{
-        //     m_modules[0].getPosition(),
-        //     m_modules[1].getPosition(),
-        //     m_modules[2].getPosition(),
-        //     m_modules[3].getPosition()
-        // });
 
         LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         
@@ -340,17 +329,6 @@ public class SwerveDrivetrain extends SubsystemBase {
        
         m_gyroscope.setYaw(getGyroscope().plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(states).omegaRadiansPerSecond).times(0.02)).getDegrees());
     }
-
-    // TODO - DE: We shouldn't need to reset encoders.
-    /* 
-    public Command resetEncoders() {
-        return this.runOnce(() -> {
-            for (int i = 0; i < m_modules.length; ++i) {
-                m_modules[i].resetEncoders();
-            }
-        });
-    }
-    */
 
     /**
      * Only for sysid.
@@ -503,22 +481,6 @@ public class SwerveDrivetrain extends SubsystemBase {
             .withName(String.format("Go To AprilTag %d", aprilTag));
     }
 
-    // TODO - DE:
-    // We shouldn't have to reset encoders.
-    /*
-    public Command resetAllEncoders() {
-        return this.runOnce(
-            () -> {
-                for (final SwerveModule module : m_modules) {
-                    module.resetEncoders();
-                    System.out.println("!");
-                    module.goToState(MetersPerSecond.zero(), Rotation2d.kZero);
-                }
-            }
-        );
-    }
-    */
-
     // get it to work with elastic's swerve drive widget
     @Override
     public void initSendable(SendableBuilder builder) {
@@ -587,9 +549,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 
     public double getRumble() {
         // Get the current Limelight data
-        //System.out.println("HERE!");
         LimelightResults results = LimelightHelpers.getLatestResults("limelight-noob");
-        //System.out.println(results.targets_Fiducials.length);
         double rumble = 0.0;
         for (int i = 0; i < results.targets_Fiducials.length; i++) {
             LimelightTarget_Fiducial tag = results.targets_Fiducials[i];
