@@ -115,18 +115,17 @@ public final class Constants {
     public static final double kFFSteer = 0.0;
 
     public static final double kPDrive = 0.05;
-    //public static final double kPDrive = 0.82;
-    //public static final double kPDrive = 0.0;
     public static final double kIDrive = 0.0;
     public static final double kDDrive = 0.0;
     public static final double kFFDrive = 0.171;
-    //public static final double kFFDrive = 0.171;
-    //public static final double kFFDrive = 2.0;
-    //public static final double kFFDrive = 0.0;
 
     public static final double kPGyro = 1.0;
     public static final double kIGyro = 0.0;
     public static final double kDGyro = 0.001;
+
+    public static final double kFFShooter = 0.015;
+    public static final double kPShooter = 0.0;
+    public static final double kDShooter = 0.0;
 
     // The one solo simulation variable for now
     public static final double kSimNoise = 1.1e-5;

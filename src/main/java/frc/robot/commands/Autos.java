@@ -27,6 +27,7 @@ public final class Autos {
   public static Command goBackAndScore(SwerveDrivetrain drivetrain, ShooterSubsystem fuel) {
     return drivetrain.driveHeadingCommand(()->-1.0, ()->0.0, ()->DegreesPerSecond.zero())
       .withTimeout(Seconds.of(1.0))
+      
       .andThen(fuel.shortLaunchCommand())
       .withTimeout(Seconds.of(5.0))
       .withName("Do Something");

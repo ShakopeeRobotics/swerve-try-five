@@ -120,6 +120,7 @@ public class RobotContainer {
 
     m_joystick.button(2).whileTrue(m_feederSubsystem.ejectCommand());
 
+    // Right bumper
     m_joystick.button(6).whileTrue(m_feederSubsystem.launchCommand());
     m_joystick.button(6).whileTrue(m_lightSubsystem.strobeRed());
 
@@ -128,6 +129,8 @@ public class RobotContainer {
 
     m_joystick.button(3).toggleOnTrue(m_shooterSubsystem.shortLaunchCommand());
     m_joystick.button(3).toggleOnTrue(m_lightSubsystem.solidRed());
+
+    //m_shooterSubsystem.isShooterRunningFast().whileTrue(m_feederSubsystem.launchCommand());
   }
 
   /**

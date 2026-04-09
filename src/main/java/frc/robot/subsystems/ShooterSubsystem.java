@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
 // TODO - DE:
@@ -21,25 +22,25 @@ public class ShooterSubsystem extends SubsystemBase {
 
     // TODO - DE:
     // I had these in the constants file but they're only used here.
-    public static final double launchFuelIntakeLauncherMotorSpeed = 0.806; // 10.6*0.8/12
-   // public static final double launchFuelFeederRollerMotorSpeed = -0.166; // -2/12
+    public static final double launchFuelIntakeLauncherMotorSpeed = 0.9; // 10.6*0.8/12
 
-    //public static final double postLaunchFeederRollerMotorSpeed = -0.45; // -9*0.6/12
+    /* For testing purposes, delegated the launch motor speed value to Elastic. */
+    public double launchFuelShortIntakeLauncherMotorSpeed = 0.9; // 10.6*0.7/12
 
-    public static final double launchFuelShortIntakeLauncherMotorSpeed = 0.618; // 10.6*0.7/12
-    //public static final double launchFuelShortFeederRollerMotorSpeed = -0.5; // -6/12
+    public static final double ejectFuelShortIntakeLauncherMotorSpeed = -0.833; // -10/12d
 
-    public static final double ejectFuelShortIntakeLauncherMotorSpeed = -0.833; // -10/12
-    //public static final double ejectFuelShortFeederRollerMotorSpeed = 1.0; // 12/12
+    public static final double minRPM = 30.0; // arbitrary
 
     public ShooterSubsystem() {
         intakeLauncherRollerMotor = new SparkMax(Constants.kLauncherId, MotorType.kBrushless);
        
-        configureMotor(intakeLauncherRollerMotor, 0.0, 0.0, 0.0, 0.01, 1.0, 1.0, 1.0, false);
+        //configureMotor(intakeLauncherRollerMotor, Constants.kPShooter, 0.0, Constants.kDShooter, Constants.kFFShooter, 1.0, 1.0, 1.0, false);
         SmartDashboard.putData("Test Shooter", testCommand());
         if (RobotBase.isSimulation()) {}
 
         SmartDashboard.putBoolean("Shooter", false);
+        launchFuelShortIntakeLauncherMotorSpeed = SmartDashboard.getNumber("Short Launch Speed", launchFuelIntakeLauncherMotorSpeed);
+        SmartDashboard.putNumber("Short Launch Speed", launchFuelShortIntakeLauncherMotorSpeed);
     }
 
 
@@ -65,11 +66,28 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command testCommand() {
-        return this.startEnd( () ->
-            intakeLauncherRollerMotor.getClosedLoopController().setSetpoint(50.0, ControlType.kVelocity),
-            () ->
-            intakeLauncherRollerMotor.getClosedLoopController().setSetpoint(0.0, ControlType.kVelocity)
-        );
+        return this.startEnd(() ->
+            intakeLauncherRollerMotor.getClosedLoopController().setSetpoint(500.0, ControlType.kVelocity),
+            () -> intakeLauncherRollerMotor.getClosedLoopController().setSetpoint(0.0, ControlType.kVelocity));
+    }
+
+    /**
+     * 
+     * This is for testing purposes only.
+     */
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Shooter RPM", intakeLauncherRollerMotor.getEncoder().getVelocity());
+
+        double prev = launchFuelShortIntakeLauncherMotorSpeed;
+        launchFuelShortIntakeLauncherMotorSpeed = SmartDashboard.getNumber("Short Launch Speed", launchFuelShortIntakeLauncherMotorSpeed);
+        if (prev != launchFuelShortIntakeLauncherMotorSpeed) {
+            SmartDashboard.putNumber("Short Launch Speed", launchFuelShortIntakeLauncherMotorSpeed);
+        }
+    }
+
+    public Trigger isShooterRunningFast() {
+        return new Trigger(() -> intakeLauncherRollerMotor.getEncoder().getVelocity() > minRPM);
     }
 
     /**

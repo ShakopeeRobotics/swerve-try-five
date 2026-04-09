@@ -18,7 +18,7 @@ public class FeederSubsystem extends SubsystemBase {
     public static final double launchFuelShortFeederRollerMotorSpeed = -0.5; // -6/12    
     public static final double ejectFuelShortFeederRollerMotorSpeed = 1.0; // 12/12
 
-    public static final double spindexOnMotorSpeed = 0.5; // check the sign on this
+    public static final double spindexOnMotorSpeed = -0.15;
         
     public FeederSubsystem(){
         spindexMotor = new SparkMax(Constants.kSpindexId, MotorType.kBrushless);
